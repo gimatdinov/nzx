@@ -3,27 +3,31 @@ package ru.otr.nzx.config;
 import org.json.JSONObject;
 
 public class FTPUserConfig {
-	public final String name;
-	public final String password;
-	public final String folder;
+    public final static String NAME = "name";
+    public final static String PASSWORD = "password";
+    public final static String FOLDER = "folder";
 
-	public FTPUserConfig(JSONObject src) {
-		name = src.getString("name");
-		password = src.getString("password");
-		folder = src.getString("folder");
-	}
+    public final String name;
+    public final String password;
+    public final String folder;
 
-	public JSONObject toJSON() {
-		JSONObject user = new JSONObject();
-		user.put("name", name);
-		user.put("password", password);
-		user.put("folder", folder);
-		return user;
-	}
+    public FTPUserConfig(JSONObject src) {
+        name = src.getString(NAME);
+        password = src.getString(PASSWORD);
+        folder = src.getString(FOLDER);
+    }
 
-	@Override
-	public String toString() {
-		return toJSON().toString();
-	}
+    public JSONObject toJSON() {
+        JSONObject user = new JSONObject();
+        user.put(NAME, name);
+        user.put(PASSWORD, password);
+        user.put(FOLDER, folder);
+        return user;
+    }
+
+    @Override
+    public String toString() {
+        return toJSON().toString();
+    }
 
 }

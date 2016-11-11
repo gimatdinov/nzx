@@ -11,47 +11,60 @@ import ru.otr.nzx.config.location.LocationConfig;
 import ru.otr.nzx.config.location.ProxyPassLocationConfig;
 
 public class HTTPServerConfig {
-	public final String listenHost;
-	public final int listenPort;
+    public final static String NAME = "name";
+    public final static String LISTEN = "listen";
+    public final static String MAX_REQUEST_BUFFER_SIZE = "max_request_buffer_size";
+    public final static String MAX_RESPONSE_BUFFER_SIZE = "max_response_buffer_size";
+    public final static String LOCATIONS = "locations";
 
-	public final int max_request_buffer_size;
-	public final int max_response_buffer_size;
+    public final String name;
+    public final String listenHost;
+    public final int listenPort;
 
-	public final Map<String, LocationConfig> locations;
+    public final int max_request_buffer_size;
+    public final int max_response_buffer_size;
 
-	public HTTPServerConfig(JSONObject src) throws URISyntaxException {
-		String[] listen = src.getString("listen").split(":");
-		listenHost = listen[0];
-		listenPort = Integer.valueOf(listen[1]);
+    public final Map<String, LocationConfig> locations;
 
-		max_request_buffer_size = src.optInt("max_request_buffer_size");
-		max_response_buffer_size = src.optInt("max_response_buffer_size");
+    public String getListen() {
+        return listenHost + ":" + listenPort;
+    }
 
-		locations = new HashMap<String, LocationConfig>();
-		JSONArray locationArray = src.getJSONArray("locations");
-		for (Object item : locationArray) {
-			JSONObject loc = (JSONObject) item;
-			String path = NZXConfigHelper.cleanPath(loc.getString("path"));
-			if (loc.has("proxy_pass")) {
-				locations.put(path, new ProxyPassLocationConfig(path, loc));
-			}
-		}
-	}
+    public HTTPServerConfig(JSONObject src) throws URISyntaxException {
+        name = src.getString(NAME);
+        String[] listen = src.getString(LISTEN).split(":");
+        listenHost = listen[0];
+        listenPort = Integer.valueOf(listen[1]);
 
-	public JSONObject toJSON() {
-		JSONObject server = new JSONObject();
-		server.put("listen", listenHost + ":" + listenPort);
-		server.put("max_request_buffer_size", max_request_buffer_size);
-		server.put("max_response_buffer_size", max_response_buffer_size);
-		for (Map.Entry<String, LocationConfig> entry : locations.entrySet()) {
-			server.append("locations", entry.getValue().toJSON().put("path", entry.getKey()));
-		}
-		return server;
-	}
-	
-	@Override
-	public String toString() {
-		return toJSON().toString();
-	}
+        max_request_buffer_size = src.optInt(MAX_REQUEST_BUFFER_SIZE);
+        max_response_buffer_size = src.optInt(MAX_RESPONSE_BUFFER_SIZE);
+
+        locations = new HashMap<String, LocationConfig>();
+        JSONArray locationArray = src.getJSONArray(LOCATIONS);
+        for (int i = 0; i < locationArray.length(); i++) {
+            JSONObject loc = locationArray.getJSONObject(i);
+            String path = NZXConfigHelper.cleanPath(loc.getString(LocationConfig.PATH));
+            if (loc.has(ProxyPassLocationConfig.PROXY_PASS)) {
+                locations.put(path, new ProxyPassLocationConfig(path, loc));
+            }
+        }
+    }
+
+    public JSONObject toJSON() {
+        JSONObject server = new JSONObject();
+        server.put(NAME, name);
+        server.put(LISTEN, getListen());
+        server.put(MAX_REQUEST_BUFFER_SIZE, max_request_buffer_size);
+        server.put(MAX_RESPONSE_BUFFER_SIZE, max_response_buffer_size);
+        for (Map.Entry<String, LocationConfig> entry : locations.entrySet()) {
+            server.append(LOCATIONS, entry.getValue().toJSON().put(LocationConfig.PATH, entry.getKey()));
+        }
+        return server;
+    }
+
+    @Override
+    public String toString() {
+        return toJSON().toString();
+    }
 
 }

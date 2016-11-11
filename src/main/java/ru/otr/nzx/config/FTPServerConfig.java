@@ -7,43 +7,56 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 public class FTPServerConfig {
-	public final String listenHost;
-	public final int listenPort;
-	public final String directory;
-	public final boolean anonymous_enable;
+    public final static String NAME = "name";
+    public final static String LISTEN = "listen";
+    public final static String DIRECTORY = "directory";
+    public final static String ANONYMOUS_ENABLE = "anonymous_enable";
+    public final static String USERS = "users";
 
-	public final List<FTPUserConfig> users;
+    public final String name;
+    public final String listenHost;
+    public final int listenPort;
+    public final String directory;
+    public final boolean anonymous_enable;
 
-	public FTPServerConfig(JSONObject src) {
-		String[] listen = src.getString("listen").split(":");
-		listenHost = listen[0];
-		listenPort = Integer.valueOf(listen[1]);
-		directory = src.getString("directory");
-		anonymous_enable = src.optBoolean("anonymous_enable");
+    public final List<FTPUserConfig> users;
 
-		users = new ArrayList<>();
-		if (!anonymous_enable) {
-			JSONArray userArray = src.getJSONArray("users");
-			for (Object item : userArray) {
-				users.add(new FTPUserConfig((JSONObject) item));
-			}
-		}
-	}
+    public String getListen() {
+        return listenHost + ":" + listenPort;
+    }
 
-	public JSONObject toJSON() {
-		JSONObject server = new JSONObject();
-		server.put("listen", listenHost + ":" + listenPort);
-		server.put("directory", directory);
-		server.put("anonymous_enable", anonymous_enable);
-		for (FTPUserConfig item : users) {
-			server.append("users", item.toJSON());
-		}
-		return server;
-	}
+    public FTPServerConfig(JSONObject src) {
+        name = src.getString(NAME);
+        String[] listen = src.getString(LISTEN).split(":");
+        listenHost = listen[0];
+        listenPort = Integer.valueOf(listen[1]);
+        directory = src.getString(DIRECTORY);
+        anonymous_enable = src.optBoolean(ANONYMOUS_ENABLE);
 
-	@Override
-	public String toString() {
-		return toJSON().toString();
-	}
+        users = new ArrayList<>();
+        if (!anonymous_enable) {
+            JSONArray userArray = src.getJSONArray(USERS);
+            for (int i = 0; i < userArray.length(); i++) {
+                users.add(new FTPUserConfig(userArray.getJSONObject(i)));
+            }
+        }
+    }
+
+    public JSONObject toJSON() {
+        JSONObject server = new JSONObject();
+        server.put(NAME, name);
+        server.put(LISTEN, getListen());
+        server.put(DIRECTORY, directory);
+        server.put(ANONYMOUS_ENABLE, anonymous_enable);
+        for (FTPUserConfig item : users) {
+            server.append(USERS, item.toJSON());
+        }
+        return server;
+    }
+
+    @Override
+    public String toString() {
+        return toJSON().toString();
+    }
 
 }

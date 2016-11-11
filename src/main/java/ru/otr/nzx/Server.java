@@ -1,21 +1,18 @@
 package ru.otr.nzx;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import cxc.jex.tracer.Tracer;
 
 public abstract class Server {
-	protected final String name;
-	protected final Logger log;
+    protected final Tracer tracer;
 
-	public Server(String name) {
-		this.name = name;
-		this.log = LoggerFactory.getLogger(name);
-	}
-	
-	public abstract void bootstrap();
-	
-	public abstract void start();
-	
-	public abstract void stop();
+    public Server(Tracer tracer) {
+        this.tracer = tracer;
+    }
+
+    public abstract void bootstrap();
+
+    public abstract void start();
+
+    public abstract void stop();
 
 }

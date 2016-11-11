@@ -8,27 +8,29 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 public class HTTPConfig {
-	public final List<HTTPServerConfig> servers;
+    public final static String SERVERS = "servers";
 
-	public HTTPConfig(JSONObject src) throws URISyntaxException {
-		servers = new ArrayList<HTTPServerConfig>();
-		JSONArray srvArray = src.getJSONArray("servers");
-		for (Object item : srvArray) {
-			servers.add(new HTTPServerConfig((JSONObject) item));
-		}
-	}
+    public final List<HTTPServerConfig> servers;
 
-	public JSONObject toJSON() {
-		JSONObject http = new JSONObject();
-		for (HTTPServerConfig item : servers) {
-			http.append("servers", item.toJSON());
-		}
-		return http;
-	}
-	
-	@Override
-	public String toString() {
-		return toJSON().toString();
-	}
+    public HTTPConfig(JSONObject src) throws URISyntaxException {
+        servers = new ArrayList<HTTPServerConfig>();
+        JSONArray srvArray = src.getJSONArray(SERVERS);
+        for (int i = 0; i < srvArray.length(); i++) {
+            servers.add(new HTTPServerConfig(srvArray.getJSONObject(i)));
+        }
+    }
+
+    public JSONObject toJSON() {
+        JSONObject http = new JSONObject();
+        for (HTTPServerConfig item : servers) {
+            http.append(SERVERS, item.toJSON());
+        }
+        return http;
+    }
+
+    @Override
+    public String toString() {
+        return toJSON().toString();
+    }
 
 }

@@ -3,19 +3,21 @@ package ru.otr.nzx.config.location;
 import org.json.JSONObject;
 
 public abstract class LocationConfig {
-	public final String path;
+    public final static String PATH = "path";
 
-	public LocationConfig(String path) {
-		this.path = path;
-	}
+    public final String path;
 
-	public JSONObject toJSON() {
-		return new JSONObject().put("path", path);
-	}
+    public LocationConfig(String path) {
+        this.path = path;
+    }
 
-	@Override
-	public String toString() {
-		return toJSON().toString();
-	}
+    public JSONObject toJSON() {
+        return new JSONObject().put(PATH, path);
+    }
+
+    @Override
+    public String toString() {
+        return toJSON().toString();
+    }
 
 }

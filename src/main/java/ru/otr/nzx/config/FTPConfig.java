@@ -8,26 +8,29 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 public class FTPConfig {
-	public final List<FTPServerConfig> servers;
+    public final static String SERVERS = "servers";
 
-	public FTPConfig(JSONObject src) throws URISyntaxException {
-		servers = new ArrayList<>();
-		JSONArray srvArray = src.getJSONArray("servers");
-		for (Object item : srvArray) {
-			servers.add(new FTPServerConfig((JSONObject) item));
-		}
-	}
+    public final List<FTPServerConfig> servers;
 
-	public JSONObject toJSON() {
-		JSONObject http = new JSONObject();
-		for (FTPServerConfig item : servers) {
-			http.append("servers", item.toJSON());
-		}
-		return http;
-	}
+    public FTPConfig(JSONObject src) throws URISyntaxException {
+        servers = new ArrayList<>();
+        JSONArray srvArray = src.getJSONArray(SERVERS);
+        for (int i = 0; i < srvArray.length(); i++) {
+            servers.add(new FTPServerConfig(srvArray.getJSONObject(i)));
 
-	@Override
-	public String toString() {
-		return toJSON().toString();
-	}
+        }
+    }
+
+    public JSONObject toJSON() {
+        JSONObject http = new JSONObject();
+        for (FTPServerConfig item : servers) {
+            http.append(SERVERS, item.toJSON());
+        }
+        return http;
+    }
+
+    @Override
+    public String toString() {
+        return toJSON().toString();
+    }
 }

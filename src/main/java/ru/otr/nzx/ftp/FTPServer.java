@@ -4,46 +4,47 @@ import org.apache.ftpserver.FtpServer;
 import org.apache.ftpserver.FtpServerFactory;
 import org.apache.ftpserver.ftplet.FtpException;
 
+import cxc.jex.tracer.Tracer;
 import ru.otr.nzx.Server;
 import ru.otr.nzx.config.FTPServerConfig;
 
 public class FTPServer extends Server {
-	private FTPServerConfig config;
-	private FtpServer srv;
+    private FTPServerConfig config;
+    private FtpServer srv;
 
-	public FTPServer(String name, FTPServerConfig config) {
-		super(name);
-		this.config = config;
-	}
+    public FTPServer(FTPServerConfig config, Tracer tracer) {
+        super(tracer.getSubtracer(config.name));
+        this.config = config;
+    }
 
-	@Override
-	public void bootstrap() {
-		log.info("FTP: server " + config.listenHost + ":" + config.listenPort + " bootstrap...");
-		FTPUserManager ftpUserManager = new FTPUserManager(config.directory, config.anonymous_enable);
-		FtpServerFactory serverFactory = new FtpServerFactory();
-		serverFactory.setUserManager(ftpUserManager);
+    @Override
+    public void bootstrap() {
+        tracer.trace("SRV.Bootstrap", "listen " + config.listenHost + ":" + config.listenPort);
+        FTPUserManager ftpUserManager = new FTPUserManager(config.directory, config.anonymous_enable);
+        FtpServerFactory serverFactory = new FtpServerFactory();
+        serverFactory.setUserManager(ftpUserManager);
 
-		FTPListener ftpListener = new FTPListener(config.listenHost, config.listenPort, false);
-		serverFactory.addListener("default", ftpListener);
+        FTPListener ftpListener = new FTPListener(config.listenHost, config.listenPort, false);
+        serverFactory.addListener("default", ftpListener);
 
-		serverFactory.getListeners();
-		srv = serverFactory.createServer();
-	}
+        serverFactory.getListeners();
+        srv = serverFactory.createServer();
+    }
 
-	@Override
-	public void start() {
-		log.info("FTP: server " + config.listenHost + ":" + config.listenPort + " start...");
-		try {
-			srv.start();
-		} catch (FtpException e) {
-			log.error(e.getMessage(), e);
-		}
-	}
+    @Override
+    public void start() {
+        tracer.trace("SRV.Start", "");
+        try {
+            srv.start();
+        } catch (FtpException e) {
+            tracer.trace("SRV.Start.Error", e.getMessage(), e);
+        }
+    }
 
-	@Override
-	public void stop() {
-		log.info("FTP: server " + config.listenHost + ":" + config.listenPort + " stop...");
-		srv.stop();
-	}
+    @Override
+    public void stop() {
+        tracer.trace("SRV.Stop", "");
+        srv.stop();
+    }
 
 }

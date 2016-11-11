@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <configuration>
 
-	<appender name="RollingFile" class="ch.qos.logback.core.rolling.RollingFileAppender">
+	<appender name="RollingFile"
+		class="ch.qos.logback.core.rolling.RollingFileAppender">
 		<rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
 			<fileNamePattern>${nzx_logs}nzx_%d{yyyy-MM-dd}.log</fileNamePattern>
 		</rollingPolicy>
@@ -13,15 +14,12 @@
 
 	<appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
 		<encoder>
-			<pattern>
-				%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} : %msg%n
-			</pattern>
+			<pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} : %msg%n</pattern>
 		</encoder>
 	</appender>
-	
-	<logger name="NZXTest" level="DEBUG"/>
-	<logger name="o.l.p.impl.DefaultHttpProxyServer" level="DEBUG"/>
 
+	<logger name="cxc.jex.tracer.logback.LogbackTracer" level="TRACE">
+	</logger>
 	<root level="INFO">
 		<appender-ref ref="STDOUT" />
 	</root>
