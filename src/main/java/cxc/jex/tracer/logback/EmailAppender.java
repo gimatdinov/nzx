@@ -1,12 +1,14 @@
 package cxc.jex.tracer.logback;
 
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
 import org.apache.commons.mail.*;
 
 import ch.qos.logback.classic.PatternLayout;
 import ch.qos.logback.classic.boolex.OnMarkerEvaluator;
 import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.core.AppenderBase;
-import ch.qos.logback.core.boolex.EvaluationException;
 
 public class EmailAppender extends AppenderBase<ILoggingEvent> {
 
@@ -17,6 +19,8 @@ public class EmailAppender extends AppenderBase<ILoggingEvent> {
     private int smtpPort = 25;
     private boolean ssl = false;
     private boolean startTLS = false;
+
+    private ExecutorService executor;
 
     public boolean isStartTLS() {
         return startTLS;
@@ -54,34 +58,41 @@ public class EmailAppender extends AppenderBase<ILoggingEvent> {
         bodyLayout.setPattern(body);
         bodyLayout.start();
 
+        executor = Executors.newCachedThreadPool();
+
         super.start();
     }
 
+    @Override
     public void append(ILoggingEvent event) {
         try {
             if (evaluator.evaluate(event)) {
-                try {
-                    Email email = new SimpleEmail();
-                    email.setCharset("UTF-8");
-                    email.setHostName(smtpHost);
-                    email.setSmtpPort(smtpPort);
-                    if (username != null && username.length() > 0) {
-                        email.setAuthenticator(new DefaultAuthenticator(username, password));
-                    }
-                    email.setSSLOnConnect(ssl);
-                    email.setStartTLSEnabled(startTLS);
-                    email.setFrom(from);
-                    for (String item : to.split(",")) {
-                        email.addTo(item.trim());
-                    }
-                    email.setSubject(subjectLayout.doLayout(event));
-                    email.setMsg(bodyLayout.doLayout(event));
-                    email.send();
-                } catch (Exception e) {
-                    System.out.println("Appender[" + getName() + "] : " + e.getMessage());
+                final Email email = new SimpleEmail();
+                email.setCharset("UTF-8");
+                email.setHostName(smtpHost);
+                email.setSmtpPort(smtpPort);
+                if (username != null && username.length() > 0) {
+                    email.setAuthenticator(new DefaultAuthenticator(username, password));
                 }
+                email.setSSLOnConnect(ssl);
+                email.setStartTLSEnabled(startTLS);
+                email.setFrom(from);
+                for (String item : to.split(",")) {
+                    email.addTo(item.trim());
+                }
+                email.setSubject(subjectLayout.doLayout(event));
+                email.setMsg(bodyLayout.doLayout(event));
+                executor.submit(new Runnable() {
+                    public void run() {
+                        try {
+                            email.send();
+                        } catch (Exception e) {
+                            System.out.println("Appender[" + getName() + "] : " + e.getMessage());
+                        }
+                    }
+                });
             }
-        } catch (EvaluationException ex) {
+        } catch (Exception ex) {
             System.out.println("Appender[" + getName() + "] : " + ex.getMessage());
         }
     }

@@ -40,7 +40,10 @@ public class HTTPServer extends Server {
             if (item instanceof ProxyPassLocationConfig) {
                 ProxyPassLocationConfig loc = (ProxyPassLocationConfig) item;
                 if (loc.dump_body_store != null) {
-                    new File(loc.dump_body_store).mkdirs();
+                    File store = new File(loc.dump_body_store);
+                    if (!store.exists() && !store.mkdirs()) {
+                        tracer.error("SRV.Bootstrap.Error", "Cannot make directory [" + loc.dump_body_store + "]");
+                    }
                 }
             }
         }
