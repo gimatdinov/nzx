@@ -19,7 +19,7 @@ public class FTPServer extends Server {
 
     @Override
     public void bootstrap() {
-        tracer.trace("SRV.Bootstrap", "listen " + config.listenHost + ":" + config.listenPort);
+        tracer.info("SRV.Bootstrap", "listen " + config.listenHost + ":" + config.listenPort);
         FTPUserManager ftpUserManager = new FTPUserManager(config.directory, config.anonymous_enable);
         FtpServerFactory serverFactory = new FtpServerFactory();
         serverFactory.setUserManager(ftpUserManager);
@@ -33,17 +33,17 @@ public class FTPServer extends Server {
 
     @Override
     public void start() {
-        tracer.trace("SRV.Start", "");
+        tracer.info("SRV.Start", "");
         try {
             srv.start();
         } catch (FtpException e) {
-            tracer.trace("SRV.Start.Error", e.getMessage(), e);
+            tracer.error("SRV.Start.Error", e.getMessage(), e);
         }
     }
 
     @Override
     public void stop() {
-        tracer.trace("SRV.Stop", "");
+        tracer.info("SRV.Stop", "");
         srv.stop();
     }
 

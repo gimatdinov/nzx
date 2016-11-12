@@ -26,12 +26,13 @@ public class NZXApplication implements CommandLineRunner {
             String name = args[0];
             File configFile = new File(args[1]).getAbsoluteFile();
             String config = new String(Files.readAllBytes(configFile.toPath()));
-            tracer.trace("Application.Run/DEBUG", "Config [" + configFile + "]=" + config);
+            tracer.debug("Application.Run.Config", "[" + configFile + "]=" + config);
             NZX nzx = new NZX(name, new NZXConfig(config), tracer);
             nzx.bootstrap();
+            tracer.info("Application.Run.Start/NOTIFY_ADMIN","");
             nzx.start();
         } catch (IOException | URISyntaxException e) {
-            tracer.trace("Application.Run.Error", e.getMessage(), e);
+            tracer.error("Application.Run.Error", e.getMessage(), e);
             throw new RuntimeException(e);
         }
     }

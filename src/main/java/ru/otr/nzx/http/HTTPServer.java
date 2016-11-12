@@ -35,7 +35,7 @@ public class HTTPServer extends Server {
 
     @Override
     public void bootstrap() {
-        tracer.trace("SRV.Bootstrap", "listen " + config.listenHost + ":" + config.listenPort);
+        tracer.info("SRV.Bootstrap", "listen " + config.listenHost + ":" + config.listenPort);
         for (LocationConfig item : config.locations.values()) {
             if (item instanceof ProxyPassLocationConfig) {
                 ProxyPassLocationConfig loc = (ProxyPassLocationConfig) item;
@@ -73,13 +73,13 @@ public class HTTPServer extends Server {
 
     @Override
     public void start() {
-        tracer.trace("SRV.Start", "");
+        tracer.info("SRV.Start", "");
         srv = srvBootstrap.start();
     }
 
     @Override
     public void stop() {
-        tracer.trace("SRV.Stop", "");
+        tracer.info("SRV.Stop", "");
         srv.stop();
 
     }

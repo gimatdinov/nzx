@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+
+	<appender name="RollingFile"
+		class="ch.qos.logback.core.rolling.RollingFileAppender">
+		<rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+			<fileNamePattern>${nzx_log}/nzx_%d{yyyy-MM-dd}.log</fileNamePattern>
+		</rollingPolicy>
+		<encoder>
+			<pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} : %msg%n</pattern>
+		</encoder>
+	</appender>
+	
+    <appender name="EMAIL" class="cxc.jex.tracer.logback.EmailAppender">
+        <markers>NOTIFY_ADMIN</markers>
+        <smtpHost>localhost</smtpHost>
+        <smtpPort>2525</smtpPort>
+        <username>YOUR_USERNAME</username>
+        <password>YOUR_PASSWORD</password>
+        <from>from@gmail.com</from>
+        <to>to1@gmail.com, to2@gmail.com</to>
+        <subject>%-5level: %msg</subject>
+        <body>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} : %msg%n</body>
+    </appender>
+
+	<appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+		<encoder>
+			<pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} : %msg%n</pattern>
+		</encoder>
+	</appender>
+
+	<logger name="cxc.jex.tracer.logback.LogbackTracer" level="DEBUG"/>
+	<logger name="org.littleshoot.proxy.impl.DefaultHttpProxyServer" level="WARN"/>
+	<logger name="org.littleshoot.proxy.impl.ProxyToServerConnection" level="WARN"/>
+	<logger name="org.apache.ftpserver.impl.DefaultFtpServer" level="WARN"/>
+	
+	<root level="INFO">
+	    <appender-ref ref="RollingFile" />
+		<appender-ref ref="STDOUT" />
+        <appender-ref ref="EMAIL" />
+	</root>
+
+</configuration>

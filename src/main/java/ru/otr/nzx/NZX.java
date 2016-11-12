@@ -1,14 +1,10 @@
 package ru.otr.nzx;
 
-import java.io.File;
-import java.io.IOException;
-import java.net.URISyntaxException;
-import java.nio.file.Files;
+
 import java.util.ArrayList;
 import java.util.List;
 
 import cxc.jex.tracer.Tracer;
-import cxc.jex.tracer.logback.LogbackTracer;
 import ru.otr.nzx.config.NZXConfig;
 import ru.otr.nzx.ftp.FTPServer;
 import ru.otr.nzx.config.FTPServerConfig;
@@ -30,7 +26,7 @@ public class NZX extends Server {
 
     @Override
     public void bootstrap() {
-        tracer.trace("SRV.Bootstrap", "");
+        tracer.info("SRV.Bootstrap", "");
         for (FTPServerConfig cfg : config.ftp.servers) {
             FTPServer ftpServer = new FTPServer(cfg, tracer.getSubtracer("FTP"));
             ftpServer.bootstrap();
@@ -44,7 +40,7 @@ public class NZX extends Server {
     }
 
     public void start() {
-        tracer.trace("SRV.Start", "");
+        tracer.info("SRV.Start", "");
         for (FTPServer server : ftpServers) {
             server.start();
         }
@@ -55,7 +51,7 @@ public class NZX extends Server {
 
     @Override
     public void stop() {
-        tracer.trace("SRV.Stop", "");
+        tracer.info("SRV.Stop", "");
         for (FTPServer server : ftpServers) {
             server.stop();
         }

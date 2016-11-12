@@ -36,6 +36,7 @@ import ru.otr.nzx.config.location.LocationConfig;
 import ru.otr.nzx.config.location.ProxyPassLocationConfig;
 
 public class LocationAdapter extends HttpFiltersAdapter {
+    private static final DateFormat dayDateFormat = new SimpleDateFormat("yyyy-MM-dd");
     private static final DateFormat idDateFormat = new SimpleDateFormat("yyyy-MM-dd_HHmmss_SSS");
 
     private final Tracer tracer;
@@ -50,6 +51,7 @@ public class LocationAdapter extends HttpFiltersAdapter {
     public LocationAdapter(HttpRequest originalRequest, ChannelHandlerContext ctx, Map<String, LocationConfig> locations, Tracer tracer) {
         super(originalRequest, ctx);
         String requestID = makeRequestID();
+        Date requestDateTime = new Date();
 
         StringBuilder logLine = new StringBuilder();
         logLine.append("ID=" + requestID);
@@ -65,9 +67,9 @@ public class LocationAdapter extends HttpFiltersAdapter {
         logLine.append("LEN=" + originalRequest.headers().get(HttpHeaders.Names.CONTENT_LENGTH));
         logLine.append(" ");
         logLine.append(originalRequest.getDecoderResult().toString());
-        tracer.trace("Client.Request", logLine.toString());
+        tracer.info("Client.Request", logLine.toString());
 
-        tracer.trace("Client.Request.GetHeaders/DEBUG", "ID=" + requestID + " headers=" + originalRequest.headers().entries());
+        tracer.debug("Client.Request.GetHeaders", "ID=" + requestID + " headers=" + originalRequest.headers().entries());
 
         try {
             uri = new URI(originalRequest.getUri()).normalize();
@@ -77,12 +79,17 @@ public class LocationAdapter extends HttpFiltersAdapter {
                 this.tracer = tracer.getSubtracer(location.path).getSubtracer(requestID);
                 ProxyPassLocationConfig loc = (ProxyPassLocationConfig) location;
                 this.passURI = makePassURI(uri, loc);
-                this.tracer.trace("Client.ProxyPass", passURI.toString());
+                this.tracer.info("Client.ProxyPass", passURI.toString());
                 this.dump_body_flag = (loc.dump_body_POST && originalRequest.getMethod().equals(HttpMethod.POST));
-                this.bodyDumpPathPart = loc.dump_body_store + "/" + idDateFormat.format(new Date()) + "_" + requestID + "_"
+                File dumpDayDir = new File(loc.dump_body_store + "/" + dayDateFormat.format(requestDateTime));
+                if (this.dump_body_flag && !dumpDayDir.exists()) {
+                    dumpDayDir.mkdir();
+                }
+                this.bodyDumpPathPart = dumpDayDir.getPath() + "/" + idDateFormat.format(requestDateTime) + "_" + requestID + "_"
                         + uri.getPath().replaceAll("[^ \\w]", "_");
+
             } else {
-                tracer.trace("Client.UnresolvedRequest", "ID=" + requestID);
+                tracer.info("Client.UnresolvedRequest", "ID=" + requestID);
                 this.tracer = tracer;
                 this.passURI = null;
                 this.dump_body_flag = false;
@@ -100,12 +107,12 @@ public class LocationAdapter extends HttpFiltersAdapter {
             HttpRequest request = (HttpRequest) httpObject;
             if (location != null && location instanceof ProxyPassLocationConfig) {
                 ProxyPassLocationConfig loc = (ProxyPassLocationConfig) location;
-                tracer.trace("Proxy.Request", passURI.toString());
+                tracer.info("Proxy.Request", passURI.toString());
                 if (loc.proxy_set_headers.size() > 0) {
                     for (Map.Entry<String, String> item : loc.proxy_set_headers.entrySet()) {
                         HttpHeaders.setHeader(request, item.getKey(), item.getValue());
                     }
-                    tracer.trace("Proxy.Request.SetHeaders/DEBUG", "set headers=" + loc.proxy_set_headers);
+                    tracer.debug("Proxy.Request.SetHeaders", "set headers=" + loc.proxy_set_headers);
                 }
                 request.setUri(passURI.toString());
             }
@@ -115,12 +122,11 @@ public class LocationAdapter extends HttpFiltersAdapter {
                 HttpHeaders.setContentLength(response, buffer.readableBytes());
                 HttpHeaders.setHeader(response, HttpHeaders.Names.CONTENT_TYPE, "text/html; charset=UTF-8");
                 HttpHeaders.setHeader(response, Names.CONNECTION, Values.CLOSE);
-                tracer.trace("Proxy.Response.Answer404", response.getProtocolVersion() + " [" + response.getStatus() + "]");
             }
         }
         if (dump_body_flag && httpObject instanceof FullHttpRequest) {
             FullHttpRequest request = (FullHttpRequest) httpObject;
-            tracer.trace("Dump.ClientRequest.Start", "LEN=" + request.headers().get(HttpHeaders.Names.CONTENT_LENGTH));
+            tracer.info("Dump.ClientRequest.Start", "LEN=" + request.headers().get(HttpHeaders.Names.CONTENT_LENGTH));
             File dump = new File(bodyDumpPathPart + "_REQ");
             try (FileOutputStream dumpFOS = new FileOutputStream(dump)) {
                 int rix = request.content().readerIndex();
@@ -128,9 +134,9 @@ public class LocationAdapter extends HttpFiltersAdapter {
                     dumpFOS.write(request.content().readByte());
                 }
                 request.content().setIndex(rix, request.content().writerIndex());
-                tracer.trace("Dump.ClientRequest.Stop", "file=" + dump.toPath());
+                tracer.info("Dump.ClientRequest.Stop", "file=" + dump.toPath());
             } catch (IOException e) {
-                tracer.trace("Dump.ClientRequest.Error/ERROR", e.getMessage(), e);
+                tracer.error("Dump.ClientRequest.Error/NOTIFY_ADMIN", e.getMessage(), e);
             }
         }
 
@@ -149,11 +155,11 @@ public class LocationAdapter extends HttpFiltersAdapter {
             logLine.append("LEN=" + response.headers().get(HttpHeaders.Names.CONTENT_LENGTH));
             logLine.append(" ");
             logLine.append(response.getDecoderResult().toString());
-            tracer.trace("Server.Response", logLine.toString());
+            tracer.info("Server.Response", logLine.toString());
         }
         if (dump_body_flag && httpObject instanceof FullHttpResponse) {
             FullHttpResponse response = (FullHttpResponse) httpObject;
-            tracer.trace("Dump.ServerRequest.Start", "LEN=" + response.headers().get(HttpHeaders.Names.CONTENT_LENGTH));
+            tracer.info("Dump.ServerRequest.Start", "LEN=" + response.headers().get(HttpHeaders.Names.CONTENT_LENGTH));
             File dump = new File(bodyDumpPathPart + "_RESP");
 
             try (FileOutputStream dumpFOS = new FileOutputStream(dump)) {
@@ -162,45 +168,31 @@ public class LocationAdapter extends HttpFiltersAdapter {
                     dumpFOS.write(response.content().readByte());
                 }
                 response.content().setIndex(rix, response.content().writerIndex());
-                tracer.trace("Dump.ServerRequest.Stop", "file=" + dump.toPath());
+                tracer.info("Dump.ServerRequest.Stop", "file=" + dump.toPath());
             } catch (IOException e) {
-                tracer.trace("Dump.ServerRequest.Error/ERROR", e.getMessage(), e);
+                tracer.error("Dump.ServerRequest.Error/NOTIFY_ADMIN", e.getMessage(), e);
             }
         }
         return httpObject;
 
     }
 
-    // @Override
-    // public HttpObject proxyToClientResponse(HttpObject httpObject) {
-    // HttpObject result = httpObject;
-    // if (httpObject instanceof HttpResponse) {
-    // HttpResponse response = (HttpResponse) httpObject;
-    // if (response.getStatus().code() >= 500) {
-    // ByteBuf buffer =
-    // Unpooled.wrappedBuffer(NZXConstants.ANSWER_500.getBytes());
-    // response = new DefaultFullHttpResponse(response.getProtocolVersion(),
-    // HttpResponseStatus.INTERNAL_SERVER_ERROR, buffer);
-    // HttpHeaders.setContentLength(response, buffer.readableBytes());
-    // HttpHeaders.setHeader(response, HttpHeaders.Names.CONTENT_TYPE,
-    // "text/html; charset=UTF-8");
-    // result = response;
-    // }
-    // }
-    // log.warn(requestID + " RESP: proxy " + result);
-    // return result;
-    // }
+    @Override
+    public HttpObject proxyToClientResponse(HttpObject httpObject) {
+        tracer.debug("Proxy.Response", httpObject.toString());
+        return httpObject;
+    }
 
     @Override
     public void serverToProxyResponseTimedOut() {
         super.serverToProxyResponseTimedOut();
-        tracer.trace("Server.TimedOut/ERROR", "");
+        tracer.warn("Server.TimedOut/NOTIFY_ADMIN", "");
     }
 
     @Override
     public void proxyToServerConnectionFailed() {
         super.proxyToServerConnectionFailed();
-        tracer.trace("Server.ConnectionFailed/ERROR", "");
+        tracer.warn("Server.ConnectionFailed/NOTIFY_ADMIN", "");
     }
 
     protected static String makeRequestID() {
