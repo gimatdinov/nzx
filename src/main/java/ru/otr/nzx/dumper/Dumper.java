@@ -68,7 +68,6 @@ public class Dumper {
                 }
                 tracer.info("Stoped", "");
             }
-
         }).start();
     }
 

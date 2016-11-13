@@ -12,7 +12,8 @@ import ch.qos.logback.core.AppenderBase;
 
 /**
  * SMTPAppender replacement, the reason http://jira.qos.ch/browse/LOGBACK-1158
- * @author ildar
+ * 
+ * @author gimatdinov
  *
  */
 public class EmailAppender extends AppenderBase<ILoggingEvent> {

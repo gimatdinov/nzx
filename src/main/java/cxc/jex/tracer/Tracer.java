@@ -4,10 +4,10 @@ import java.util.List;
 
 public interface Tracer extends TracerLogger {
 
-    public String getName();
+    String getName();
 
-    public List<String> getPath();
+    List<String> getPath();
 
-    public Tracer getSubtracer(String name);
+    Tracer getSubtracer(String name);
 
 }

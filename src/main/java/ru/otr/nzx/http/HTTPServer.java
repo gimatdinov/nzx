@@ -35,7 +35,6 @@ public class HTTPServer extends Server {
         super(tracer.getSubtracer(config.name));
         this.config = config;
         this.dumper = dumper;
-
     }
 
     @Override

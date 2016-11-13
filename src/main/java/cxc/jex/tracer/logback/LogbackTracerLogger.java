@@ -87,7 +87,6 @@ public class LogbackTracerLogger implements TracerLogger {
             log.debug(rec.marker, rec.message, rec.throwable);
         else
             log.debug(rec.message, rec.throwable);
-
     }
 
     @Override

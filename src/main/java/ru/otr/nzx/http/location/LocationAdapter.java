@@ -79,7 +79,7 @@ public class LocationAdapter extends HttpFiltersAdapter {
 
             if (location != null && location instanceof ProxyPassLocationConfig) {
                 this.dumper = dumper;
-                this.tracer = tracer.getSubtracer("loc:" + location.path).getSubtracer(requestID);
+                this.tracer = tracer.getSubtracer(location.path).getSubtracer(requestID);
                 ProxyPassLocationConfig loc = (ProxyPassLocationConfig) location;
                 this.passURI = makePassURI(uri, loc);
                 this.tracer.info("Client.ProxyPass", passURI.toString());
