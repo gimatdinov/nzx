@@ -1,15 +1,20 @@
 package ru.otr.nzx.config;
 
+import java.io.File;
+import java.io.IOException;
 import java.net.URISyntaxException;
+import java.nio.file.Files;
 
 import org.json.JSONObject;
 
 public class NZXConfig {
     public final static String FTP = "ftp";
     public final static String HTTP = "http";
+    public final static String DUMPER = "dumper";
 
     public final FTPConfig ftp;
     public final HTTPConfig http;
+    public final DumperConfig dumper;
 
     public NZXConfig(String src) throws URISyntaxException {
         JSONObject config = new JSONObject(src);
@@ -19,7 +24,15 @@ public class NZXConfig {
             ftp = null;
         }
         http = new HTTPConfig(config.getJSONObject(HTTP));
+        if (config.has(DUMPER)) {
+            dumper = new DumperConfig(config.getJSONObject(DUMPER));
+        } else {
+            dumper = null;
+        }
+    }
 
+    public NZXConfig(File file) throws URISyntaxException, IOException {
+        this(new String(Files.readAllBytes(file.toPath())));
     }
 
     public JSONObject toJSON() {
@@ -28,6 +41,9 @@ public class NZXConfig {
             config.put(FTP, ftp.toJSON());
         }
         config.put(HTTP, http.toJSON());
+        if (dumper != null) {
+            config.put(DUMPER, dumper.toJSON());
+        }
         return config;
     }
 

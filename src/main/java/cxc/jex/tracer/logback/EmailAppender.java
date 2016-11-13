@@ -10,6 +10,11 @@ import ch.qos.logback.classic.boolex.OnMarkerEvaluator;
 import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.core.AppenderBase;
 
+/**
+ * SMTPAppender replacement, the reason http://jira.qos.ch/browse/LOGBACK-1158
+ * @author ildar
+ *
+ */
 public class EmailAppender extends AppenderBase<ILoggingEvent> {
 
     private String markers;
@@ -67,7 +72,7 @@ public class EmailAppender extends AppenderBase<ILoggingEvent> {
     public void append(ILoggingEvent event) {
         try {
             if (evaluator.evaluate(event)) {
-                final Email email = new SimpleEmail();
+                final Email email = new HtmlEmail();
                 email.setCharset("UTF-8");
                 email.setHostName(smtpHost);
                 email.setSmtpPort(smtpPort);
@@ -80,7 +85,9 @@ public class EmailAppender extends AppenderBase<ILoggingEvent> {
                 for (String item : to.split(",")) {
                     email.addTo(item.trim());
                 }
-                email.setSubject(subjectLayout.doLayout(event));
+                String subjectText = subjectLayout.doLayout(event);
+                subjectText = subjectText.length() > 100 ? subjectText.substring(0, 96) + "..." : subjectText;
+                email.setSubject(subjectText);
                 email.setMsg(bodyLayout.doLayout(event));
                 executor.submit(new Runnable() {
                     public void run() {

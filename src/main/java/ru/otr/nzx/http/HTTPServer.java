@@ -20,6 +20,7 @@ import ru.otr.nzx.Server;
 import ru.otr.nzx.config.HTTPServerConfig;
 import ru.otr.nzx.config.location.LocationConfig;
 import ru.otr.nzx.config.location.ProxyPassLocationConfig;
+import ru.otr.nzx.dumper.Dumper;
 import ru.otr.nzx.http.location.LocationAdapter;
 
 public class HTTPServer extends Server {
@@ -28,21 +29,28 @@ public class HTTPServer extends Server {
     private HttpProxyServerBootstrap srvBootstrap;
     private HttpProxyServer srv;
 
-    public HTTPServer(HTTPServerConfig config, Tracer tracer) {
+    private Dumper dumper;
+
+    public HTTPServer(HTTPServerConfig config, Dumper dumper, Tracer tracer) {
         super(tracer.getSubtracer(config.name));
         this.config = config;
+        this.dumper = dumper;
+
     }
 
     @Override
     public void bootstrap() {
-        tracer.info("SRV.Bootstrap", "listen " + config.listenHost + ":" + config.listenPort);
+        tracer.info("Bootstrap", "listen " + config.listenHost + ":" + config.listenPort);
         for (LocationConfig item : config.locations.values()) {
             if (item instanceof ProxyPassLocationConfig) {
                 ProxyPassLocationConfig loc = (ProxyPassLocationConfig) item;
-                if (loc.dump_body_store != null) {
-                    File store = new File(loc.dump_body_store);
+                if (loc.dump_content_enable) {
+                    if (dumper == null) {
+                        throw new RuntimeException("Dumper not enable, need for location [" + item.path + "]");
+                    }
+                    File store = new File(loc.dump_content_store);
                     if (!store.exists() && !store.mkdirs()) {
-                        tracer.error("SRV.Bootstrap.Error", "Cannot make directory [" + loc.dump_body_store + "]");
+                        tracer.error("SRV.Bootstrap.Error", "Cannot make directory [" + loc.dump_content_store + "]");
                     }
                 }
             }
@@ -61,7 +69,7 @@ public class HTTPServer extends Server {
             }
 
             public HttpFilters filterRequest(HttpRequest originalRequest, ChannelHandlerContext ctx) {
-                return new LocationAdapter(originalRequest, ctx, config.locations, tracer);
+                return new LocationAdapter(originalRequest, ctx, config.locations, dumper, tracer);
             }
         });
 
@@ -76,14 +84,13 @@ public class HTTPServer extends Server {
 
     @Override
     public void start() {
-        tracer.info("SRV.Start", "");
+        tracer.info("Starting", "");
         srv = srvBootstrap.start();
     }
 
     @Override
     public void stop() {
-        tracer.info("SRV.Stop", "");
         srv.stop();
-
+        tracer.info("Stoped", "");
     }
 }
