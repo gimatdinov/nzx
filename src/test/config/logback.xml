@@ -12,13 +12,13 @@
 	</appender>
 	
     <appender name="EMAIL" class="cxc.jex.tracer.logback.EmailAppender">
-        <markers>NOTIFY_ADMIN</markers>
+        <markers>NOTIFY_ADMIN, CONNECTION_ERROR, DUMPING_ERROR, SOAP_FAULT</markers>
         <smtpHost>localhost</smtpHost>
         <smtpPort>2525</smtpPort>
-        <username>YOUR_USERNAME</username>
-        <password>YOUR_PASSWORD</password>
-        <from>from@gmail.com</from>
-        <to>to1@gmail.com, to2@gmail.com</to>
+        <username>USERNAME</username>
+        <password>PASSWORD</password>
+        <from>nzx@otr.ru</from>
+        <to>admin@otr.ru</to>
         <subject>%-5level: %msg</subject>
         <body>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} : %msg%n</body>
     </appender>

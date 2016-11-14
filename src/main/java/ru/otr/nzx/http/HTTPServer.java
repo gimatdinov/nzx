@@ -17,9 +17,9 @@ import cxc.jex.tracer.Tracer;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.http.HttpRequest;
 import ru.otr.nzx.Server;
-import ru.otr.nzx.config.HTTPServerConfig;
-import ru.otr.nzx.config.location.LocationConfig;
-import ru.otr.nzx.config.location.ProxyPassLocationConfig;
+import ru.otr.nzx.config.http.HTTPServerConfig;
+import ru.otr.nzx.config.http.location.LocationConfig;
+import ru.otr.nzx.config.http.location.ProxyPassLocationConfig;
 import ru.otr.nzx.http.location.LocationAdapter;
 import ru.otr.nzx.http.postprocessing.HTTPPostProcessor;
 
@@ -44,7 +44,7 @@ public class HTTPServer extends Server {
             if (item instanceof ProxyPassLocationConfig) {
                 ProxyPassLocationConfig loc = (ProxyPassLocationConfig) item;
                 if (loc.dump_content_enable) {
-                    if (postProcessor == null || !postProcessor.dumping()) {
+                    if (postProcessor == null || !postProcessor.isDumpingEnable()) {
                         throw new RuntimeException("Dumping not enable, need for location [" + item.path + "]");
                     }
                     File store = new File(loc.dump_content_store);

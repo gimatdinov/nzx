@@ -1,10 +1,10 @@
 # NZX
-HTTP proxy, based on the LittleProxy (https://github.com/adamfisk/LittleProxy), configuration like the nginx (https://nginx.org)
+HTTP proxy, based on LittleProxy (https://github.com/adamfisk/LittleProxy), configuration like nginx (https://nginx.org)
 
 ##Features
 * Java (LittleProxy) based
-* Configuration like the nginx 
-* Dumping request and response content
+* Configuration like nginx 
+* Request and response content postprocessing (for example dumping)
 * Built-in FTP server (to view dumps)
 
 ## Run

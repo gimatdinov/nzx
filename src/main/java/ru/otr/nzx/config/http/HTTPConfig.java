@@ -1,4 +1,4 @@
-package ru.otr.nzx.config;
+package ru.otr.nzx.config.http;
 
 import java.net.URISyntaxException;
 import java.util.ArrayList;
@@ -6,6 +6,8 @@ import java.util.List;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
+
+import ru.otr.nzx.config.http.postprocessing.HTTPPostProcessorConfig;
 
 public class HTTPConfig {
 	public final static String SERVERS = "servers";

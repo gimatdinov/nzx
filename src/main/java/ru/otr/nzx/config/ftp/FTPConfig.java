@@ -1,4 +1,4 @@
-package ru.otr.nzx.config;
+package ru.otr.nzx.config.ftp;
 
 import java.net.URISyntaxException;
 import java.util.ArrayList;

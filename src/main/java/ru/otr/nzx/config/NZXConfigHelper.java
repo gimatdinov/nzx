@@ -2,7 +2,7 @@ package ru.otr.nzx.config;
 
 import java.util.Map;
 
-import ru.otr.nzx.config.location.LocationConfig;
+import ru.otr.nzx.config.http.location.LocationConfig;
 
 public class NZXConfigHelper {
 

@@ -1,4 +1,4 @@
-package ru.otr.nzx.config.location;
+package ru.otr.nzx.config.http.location;
 
 import org.json.JSONObject;
 

@@ -6,7 +6,7 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 
 import cxc.jex.tracer.Tracer;
-import ru.otr.nzx.config.location.ProxyPassLocationConfig;
+import ru.otr.nzx.config.http.location.ProxyPassLocationConfig;
 
 public class Dumping implements HTTPPostProcessor.Action {
 	private static final DateFormat idDateFormat = new SimpleDateFormat("yyyy-MM-dd_HHmmss_SSS");
@@ -31,12 +31,12 @@ public class Dumping implements HTTPPostProcessor.Action {
         path.append("_");
         path.append(tank.type);
         
-		tracer.debug("Dump", "file=[" + path + "] size=" + tank.contentLength);
+		tracer.debug("Dumping", "file=[" + path + "] size=" + tank.contentLength);
 		
 		try (FileOutputStream fos = new FileOutputStream(path.toString())) {
 			fos.write(tank.data, 0, tank.contentLength);
 		} catch (Exception e) {
-			tracer.error("Dump.Error/NOTIFY_ADMIN", "file=[" + path + "]", e);
+			tracer.error("Dumping.Error/DUMPING_ERROR", "file=[" + path + "]", e);
 		}
 	}
 

@@ -7,7 +7,7 @@ import org.apache.ftpserver.ftplet.FtpException;
 
 import cxc.jex.tracer.Tracer;
 import ru.otr.nzx.Server;
-import ru.otr.nzx.config.FTPServerConfig;
+import ru.otr.nzx.config.ftp.FTPServerConfig;
 
 public class FTPServer extends Server {
 	private FTPServerConfig config;

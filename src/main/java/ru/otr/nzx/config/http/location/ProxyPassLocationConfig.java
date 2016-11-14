@@ -1,4 +1,4 @@
-package ru.otr.nzx.config.location;
+package ru.otr.nzx.config.http.location;
 
 import java.net.URI;
 import java.net.URISyntaxException;
