@@ -20,8 +20,8 @@ import ru.otr.nzx.Server;
 import ru.otr.nzx.config.HTTPServerConfig;
 import ru.otr.nzx.config.location.LocationConfig;
 import ru.otr.nzx.config.location.ProxyPassLocationConfig;
-import ru.otr.nzx.dumper.Dumper;
 import ru.otr.nzx.http.location.LocationAdapter;
+import ru.otr.nzx.http.postprocessing.HTTPPostProcessor;
 
 public class HTTPServer extends Server {
 
@@ -29,12 +29,12 @@ public class HTTPServer extends Server {
     private HttpProxyServerBootstrap srvBootstrap;
     private HttpProxyServer srv;
 
-    private Dumper dumper;
+    private HTTPPostProcessor postProcessor;
 
-    public HTTPServer(HTTPServerConfig config, Dumper dumper, Tracer tracer) {
+    public HTTPServer(HTTPServerConfig config, HTTPPostProcessor postProcessor, Tracer tracer) {
         super(tracer.getSubtracer(config.name));
         this.config = config;
-        this.dumper = dumper;
+        this.postProcessor = postProcessor;
     }
 
     @Override
@@ -44,8 +44,8 @@ public class HTTPServer extends Server {
             if (item instanceof ProxyPassLocationConfig) {
                 ProxyPassLocationConfig loc = (ProxyPassLocationConfig) item;
                 if (loc.dump_content_enable) {
-                    if (dumper == null) {
-                        throw new RuntimeException("Dumper not enable, need for location [" + item.path + "]");
+                    if (postProcessor == null || !postProcessor.dumping()) {
+                        throw new RuntimeException("Dumping not enable, need for location [" + item.path + "]");
                     }
                     File store = new File(loc.dump_content_store);
                     if (!store.exists() && !store.mkdirs()) {
@@ -68,7 +68,7 @@ public class HTTPServer extends Server {
             }
 
             public HttpFilters filterRequest(HttpRequest originalRequest, ChannelHandlerContext ctx) {
-                return new LocationAdapter(originalRequest, ctx, config.locations, dumper, tracer);
+                return new LocationAdapter(originalRequest, ctx, config.locations, postProcessor, tracer);
             }
         });
 
