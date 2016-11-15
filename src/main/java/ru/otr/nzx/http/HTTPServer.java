@@ -32,6 +32,9 @@ import ru.otr.nzx.http.location.LocationAdapter;
 import ru.otr.nzx.http.postprocessing.HTTPPostProcessor;
 
 public class HTTPServer extends Server {
+    public static enum HttpObjectType {
+        REQ, RES
+    }
 
     private final HTTPServerConfig config;
     private HttpProxyServerBootstrap srvBootstrap;
@@ -87,7 +90,7 @@ public class HTTPServer extends Server {
                 logLine.append(" ");
                 logLine.append(request.getUri());
                 logLine.append(" ");
-                logLine.append("REQ");
+                logLine.append(HttpObjectType.REQ);
                 logLine.append(" ");
                 logLine.append("LEN=" + request.headers().get(HttpHeaders.Names.CONTENT_LENGTH));
                 logLine.append(" ");

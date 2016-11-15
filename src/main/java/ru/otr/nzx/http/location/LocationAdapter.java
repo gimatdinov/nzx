@@ -25,11 +25,12 @@ import io.netty.handler.codec.http.HttpResponseStatus;
 import ru.otr.nzx.NZXConstants;
 import ru.otr.nzx.config.http.location.LocationConfig;
 import ru.otr.nzx.config.http.location.ProxyPassLocationConfig;
+import ru.otr.nzx.http.HTTPServer.HttpObjectType;
 import ru.otr.nzx.http.postprocessing.HTTPPostProcessor;
 import ru.otr.nzx.http.postprocessing.Tank;
-import ru.otr.nzx.http.postprocessing.Tank.Type;
 
 public class LocationAdapter extends HttpFiltersAdapter {
+
     private final HTTPPostProcessor postProcessor;
     private final Tracer tracer;
 
@@ -156,14 +157,14 @@ public class LocationAdapter extends HttpFiltersAdapter {
 
     protected void putToPostProcessor(HttpObject httpObject) {
         ByteBuf content = null;
-        Tank.Type type = null;
+        HttpObjectType type = null;
         if (httpObject instanceof FullHttpRequest) {
             content = ((FullHttpRequest) httpObject).content();
-            type = Type.REQ;
+            type = HttpObjectType.REQ;
         }
         if (httpObject instanceof FullHttpResponse) {
             content = ((FullHttpResponse) httpObject).content();
-            type = Type.RES;
+            type = HttpObjectType.RES;
         }
 
         if (content != null && content.isReadable()) {

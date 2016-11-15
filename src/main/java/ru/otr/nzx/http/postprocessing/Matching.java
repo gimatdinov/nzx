@@ -3,7 +3,7 @@ package ru.otr.nzx.http.postprocessing;
 import java.io.ByteArrayOutputStream;
 
 import cxc.jex.tracer.Tracer;
-import ru.otr.nzx.http.postprocessing.Tank.Type;
+import ru.otr.nzx.http.HTTPServer.HttpObjectType;
 
 public class Matching implements HTTPPostProcessor.Action {
 
@@ -19,7 +19,7 @@ public class Matching implements HTTPPostProcessor.Action {
 
     @Override
     public void process(Tank tank, Tracer tracer) {
-        if (tank.type == Type.RES && tank.contentLength <= maxContentLength) {
+        if (tank.type == HttpObjectType.RES && tank.contentLength <= maxContentLength) {
             try (ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
                 baos.write(tank.data, 0, tank.contentLength);
                 String content = baos.toString();

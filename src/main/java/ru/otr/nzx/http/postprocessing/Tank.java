@@ -7,14 +7,12 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
-public class Tank {
-    public static enum Type {
-        REQ, RES
-    };
+import ru.otr.nzx.http.HTTPServer.HttpObjectType;
 
+public class Tank {
     private static final DateFormat idDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
 
-    public Type type;
+    public HttpObjectType type;
     public Date requestDateTime;
     public String requestID;
     public URI requestURI;
@@ -38,7 +36,7 @@ public class Tank {
         result.append(" ");
         result.append(requestID);
         result.append(" ");
-        result.append(requestURI);
+        result.append(requestURI.getPath());
         result.append(" ");
         result.append(type);
         result.append(" ");

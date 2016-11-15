@@ -28,7 +28,7 @@ public class LogbackTracerLogger implements TracerLogger {
         if (parts.length > 1) {
             result.marker = MarkerFactory.getDetachedMarker(parts[1]);
         }
-        result.message = path + "(" + event.split("/")[0] + ") " + msg;
+        result.message = path + "(" + event + ") " + msg;
         result.throwable = t;
         return result;
     }
