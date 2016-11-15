@@ -15,10 +15,9 @@ public class Tank {
     private static final DateFormat idDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
 
     public Type type;
-    public String requestID;
     public Date requestDateTime;
-    public String method;
-    public URI uri;
+    public String requestID;
+    public URI requestURI;
     public final byte[] data;
     public int contentLength;
 
@@ -39,9 +38,7 @@ public class Tank {
         result.append(" ");
         result.append(requestID);
         result.append(" ");
-        result.append(method);
-        result.append(" ");
-        result.append(uri.getPath());
+        result.append(requestURI);
         result.append(" ");
         result.append(type);
         result.append(" ");

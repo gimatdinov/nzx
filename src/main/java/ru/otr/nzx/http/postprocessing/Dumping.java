@@ -29,7 +29,7 @@ public class Dumping implements HTTPPostProcessor.Action {
             path.append("_");
             path.append(tank.requestID);
             path.append("_");
-            path.append(tank.uri.getPath().replaceAll("[^ \\w]", "_"));
+            path.append(tank.requestURI.getPath().replaceAll("[^ \\w]", "_"));
             path.append("_");
             path.append(tank.type);
 
