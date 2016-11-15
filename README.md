@@ -3,10 +3,11 @@ HTTP proxy, based on LittleProxy (https://github.com/adamfisk/LittleProxy), conf
 
 ##Features
 * Java (LittleProxy) based
-* Configuration like nginx 
-* Request and response content extensible postprocessing 
+* Configuration like nginx
+* E-mail notification about errors
+* Extensible postprocessing for request and response content 
  * Dumping
- * Regex parcing with e-mail notification
+ * Regex matching with e-mail notification
 * Built-in FTP server (to view dumps) 
 
 ##Build
