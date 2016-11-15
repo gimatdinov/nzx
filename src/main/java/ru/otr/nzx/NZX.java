@@ -9,7 +9,6 @@ import ru.otr.nzx.config.ftp.FTPServerConfig;
 import ru.otr.nzx.config.http.HTTPServerConfig;
 import ru.otr.nzx.ftp.FTPServer;
 import ru.otr.nzx.http.HTTPServer;
-import ru.otr.nzx.http.postprocessing.HTTPPostProcessor;
 
 public class NZX extends Server {
 
@@ -17,7 +16,6 @@ public class NZX extends Server {
 
     private final List<FTPServer> ftpServers;
 
-    private HTTPPostProcessor postProcessor;
     private final List<HTTPServer> httpServers;
 
     public NZX(NZXConfig config, Tracer tracer) {
@@ -38,13 +36,9 @@ public class NZX extends Server {
                 ftpServers.add(ftpServer);
             }
         }
-        if (config.http.post_processing != null && config.http.post_processing.enable) {
-            postProcessor = new HTTPPostProcessor("PostProcessor", config.http.post_processing, tracer.getSubtracer("HTTP"));
-            postProcessor.bootstrap();
-        }
         for (final HTTPServerConfig cfg : config.http.servers) {
             if (cfg.enable) {
-                HTTPServer httpServer = new HTTPServer(cfg, postProcessor, tracer.getSubtracer("HTTP"));
+                HTTPServer httpServer = new HTTPServer(cfg, tracer.getSubtracer("HTTP"));
                 httpServer.bootstrap();
                 httpServers.add(httpServer);
             }
@@ -56,9 +50,6 @@ public class NZX extends Server {
         for (FTPServer server : ftpServers) {
             server.start();
         }
-        if (postProcessor != null) {
-            postProcessor.start();
-        }
         for (HTTPServer server : httpServers) {
             server.start();
         }
@@ -69,9 +60,6 @@ public class NZX extends Server {
     public void stop() {
         for (HTTPServer server : httpServers) {
             server.stop();
-        }
-        if (postProcessor != null) {
-            postProcessor.stop();
         }
         for (FTPServer server : ftpServers) {
             server.stop();
