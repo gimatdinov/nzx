@@ -56,7 +56,9 @@ public class HTTPServerConfig {
 
     public JSONObject toJSON() {
         JSONObject server = new JSONObject();
-        server.put(ENABLE, enable);
+        if (!enable) {
+            server.put(ENABLE, enable);
+        }
         server.put(NAME, name);
         server.put(LISTEN, getListen());
         server.put(MAX_REQUEST_BUFFER_SIZE, max_request_buffer_size);

@@ -37,27 +37,28 @@ public class LocationAdapter extends HttpFiltersAdapter {
     private final HTTPPostProcessor postProcessor;
     private final Tracer tracer;
 
-    private final URI uri;
-    private final LocationConfig location;
     private final String requestID;
     private final Date requestDateTime;
+    private final String method;
+    private final URI uri;
+    private final LocationConfig location;
+    
     private final URI passURI;
-
-    private final boolean dump_content_flag;
-    private final String dump_content_store;
 
     public LocationAdapter(HttpRequest originalRequest, ChannelHandlerContext ctx, Map<String, LocationConfig> locations, HTTPPostProcessor postProcessor,
             Tracer tracer) {
         super(originalRequest, ctx);
+        this.postProcessor = postProcessor;
         requestID = makeRequestID();
         requestDateTime = new Date();
+        method = originalRequest.getMethod().name();
 
         StringBuilder logLine = new StringBuilder();
         logLine.append("ID=" + requestID);
         logLine.append(" ");
         logLine.append("FROM " + ctx.channel().remoteAddress().toString());
         logLine.append(" ");
-        logLine.append(originalRequest.getMethod().name());
+        logLine.append(method);
         logLine.append(" ");
         logLine.append(originalRequest.getUri());
         logLine.append(" ");
@@ -75,20 +76,13 @@ public class LocationAdapter extends HttpFiltersAdapter {
             location = NZXConfigHelper.locate(uri.getPath(), locations);
 
             if (location != null && location instanceof ProxyPassLocationConfig) {
-                this.postProcessor = postProcessor;
                 this.tracer = tracer.getSubtracer(location.path).getSubtracer(requestID);
-                ProxyPassLocationConfig loc = (ProxyPassLocationConfig) location;
-                this.passURI = makePassURI(uri, loc);
+                this.passURI = makePassURI(uri, (ProxyPassLocationConfig) location);
                 this.tracer.info("Client.ProxyPass", passURI.toString());
-                this.dump_content_flag = (loc.dump_content_enable && originalRequest.getMethod().equals(HttpMethod.POST));
-                this.dump_content_store = loc.dump_content_store;
             } else {
                 tracer.info("Client.UnresolvedRequest", "ID=" + requestID);
-                this.postProcessor = null;
                 this.tracer = tracer;
                 this.passURI = null;
-                this.dump_content_flag = false;
-                this.dump_content_store = null;
             }
         } catch (URISyntaxException e) {
             throw new RuntimeException(e);
@@ -119,7 +113,7 @@ public class LocationAdapter extends HttpFiltersAdapter {
                 HttpHeaders.setHeader(response, Names.CONNECTION, Values.CLOSE);
             }
         }
-        if (dump_content_flag && httpObject instanceof FullHttpRequest) {
+        if (location.post_processing_enable && httpObject instanceof FullHttpRequest && HttpMethod.POST.name().equals(method)) {
             putToPostProcessor(httpObject);
         }
         return response;
@@ -139,7 +133,7 @@ public class LocationAdapter extends HttpFiltersAdapter {
             logLine.append(response.getDecoderResult().toString());
             tracer.info("Server.Response", logLine.toString());
         }
-        if (dump_content_flag && httpObject instanceof FullHttpResponse) {
+        if (location.post_processing_enable && httpObject instanceof FullHttpResponse) {
             putToPostProcessor(httpObject);
         }
         return httpObject;
@@ -213,8 +207,9 @@ public class LocationAdapter extends HttpFiltersAdapter {
             tank.type = type;
             tank.requestID = requestID;
             tank.requestDateTime = requestDateTime;
+            tank.method = method;
             tank.uri = uri;
-            tank.properties.put(ProxyPassLocationConfig.DUMP_CONTENT_STORE, dump_content_store);
+            tank.properties.put(LocationConfig.DUMP_CONTENT_STORE, location.dump_content_store);
             tank.contentLength = content.readableBytes();
             content.readBytes(tank.data, 0, Math.min(content.readableBytes(), tank.data.length));
             postProcessor.put(tank);

@@ -59,9 +59,7 @@ public class HTTPPostProcessor extends Server {
 
     @Override
     public void bootstrap() {
-        if (config.dumping_enable) {
-            registerAction(new Dumping());
-        }
+        registerAction(new Dumping());
         for (ActionConfig item : config.actions) {
             loadActions(item);
         }

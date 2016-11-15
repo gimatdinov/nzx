@@ -61,7 +61,9 @@ public class FTPServerConfig {
 
     public JSONObject toJSON() {
         JSONObject server = new JSONObject();
-        server.put(ENABLE, enable);
+        if (!enable) {
+            server.put(ENABLE, enable);
+        }
         server.put(NAME, name);
         server.put(LISTEN, getListen());
         server.put(ACTIVE_ENABLE, active_enable);

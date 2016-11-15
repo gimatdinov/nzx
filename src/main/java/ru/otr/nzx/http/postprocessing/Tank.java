@@ -17,6 +17,7 @@ public class Tank {
     public Type type;
     public String requestID;
     public Date requestDateTime;
+    public String method;
     public URI uri;
     public final byte[] data;
     public int contentLength;
@@ -33,7 +34,20 @@ public class Tank {
 
     @Override
     public String toString() {
-        return idDateFormat.format(requestDateTime) + " " + requestID + " " + uri.getPath() + " " + type + " LEN=" + contentLength;
+        StringBuilder result = new StringBuilder();
+        result.append(idDateFormat.format(requestDateTime));
+        result.append(" ");
+        result.append(requestID);
+        result.append(" ");
+        result.append(method);
+        result.append(" ");
+        result.append(uri.getPath());
+        result.append(" ");
+        result.append(type);
+        result.append(" ");
+        result.append("LEN=");
+        result.append(contentLength);
+        return result.toString();
     }
 
 }

@@ -24,7 +24,9 @@ public class ActionConfig {
 
     public Object toJSON() {
         JSONObject action = new JSONObject();
-        action.put(ENABLE, enable);
+        if (!enable) {
+            action.put(ENABLE, enable);
+        }
         action.put(CLASS, clazz);
         for (String item : parameters) {
             action.append(PARAMETERS, item);

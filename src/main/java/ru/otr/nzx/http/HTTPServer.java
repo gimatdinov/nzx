@@ -43,13 +43,17 @@ public class HTTPServer extends Server {
         for (LocationConfig item : config.locations.values()) {
             if (item instanceof ProxyPassLocationConfig) {
                 ProxyPassLocationConfig loc = (ProxyPassLocationConfig) item;
-                if (loc.dump_content_enable) {
-                    if (postProcessor == null || !postProcessor.isDumpingEnable()) {
-                        throw new RuntimeException("Dumping not enable, need for location [" + item.path + "]");
+                if (loc.post_processing_enable) {
+                    if (postProcessor == null) {
+                        throw new RuntimeException("http.post_processing is not enable, need for location [" + item.path + "]");
                     }
-                    File store = new File(loc.dump_content_store);
-                    if (!store.exists() && !store.mkdirs()) {
-                        tracer.error("SRV.Bootstrap.Error", "Cannot make directory [" + loc.dump_content_store + "]");
+
+                    if (loc.dump_content_store != null) {
+                        File store = new File(loc.dump_content_store);
+                        if (!store.exists() && !store.mkdirs()) {
+                            tracer.error("Bootstrap.Error", "Cannot make directory [" + loc.dump_content_store + "]");
+
+                        }
                     }
                 }
             }
