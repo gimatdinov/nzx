@@ -17,7 +17,7 @@ class Worker implements Runnable {
 
 	@Override
 	public void run() {
-		postProcessor.getTracer().info("Starting", "");
+		postProcessor.getTracer().info("Worker.Starting", "");
 		while (postProcessor.started) {
 			lock.lock();
 			Tank tank = postProcessor.loadedTanks.poll();
@@ -30,7 +30,7 @@ class Worker implements Runnable {
 					comingLoadedTanks.await();
 				}
 			} catch (Exception e) {
-				postProcessor.getTracer().error("Error/NOTIFY_ADMIN", tank.toString(), e);
+				postProcessor.getTracer().error("Worker.Error/NOTIFY_ADMIN", tank.toString(), e);
 			} finally {
 				if (tank != null) {
 					postProcessor.emptyTanks.add(tank);
@@ -39,7 +39,7 @@ class Worker implements Runnable {
 				lock.unlock();
 			}
 		}
-		postProcessor.getTracer().info("Stoped", "");
+		postProcessor.getTracer().info("Worker.Stoped", "");
 	}
 
 	public void signal() {

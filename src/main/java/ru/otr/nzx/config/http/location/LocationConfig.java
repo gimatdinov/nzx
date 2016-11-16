@@ -30,5 +30,13 @@ public abstract class LocationConfig {
     public String toString() {
         return toJSON().toString();
     }
+    
+    public static String cleanPath(String path) {
+        path = path.trim().replaceAll("/+", "/");
+        if (path.length() > 1 && path.charAt(path.length() - 1) == '/') {
+            path = path.substring(0, path.length() - 1);
+        }
+        return path;
+    }
 
 }

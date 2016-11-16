@@ -28,13 +28,7 @@ public class EmailAppender extends AppenderBase<ILoggingEvent> {
 
     private ExecutorService executor;
 
-    public boolean isStartTLS() {
-        return startTLS;
-    }
 
-    public void setStartTLS(boolean startTLS) {
-        this.startTLS = startTLS;
-    }
 
     private String username;
     private String password;
@@ -47,13 +41,6 @@ public class EmailAppender extends AppenderBase<ILoggingEvent> {
 
     @Override
     public void start() {
-        evaluator = new OnMarkerEvaluator();
-        evaluator.setContext(context);
-        for (String item : markers.split(",")) {
-            evaluator.addMarker(item.trim());
-        }
-        evaluator.start();
-
         subjectLayout = new PatternLayout();
         subjectLayout.setContext(context);
         subjectLayout.setPattern(subject);
@@ -63,10 +50,25 @@ public class EmailAppender extends AppenderBase<ILoggingEvent> {
         bodyLayout.setContext(context);
         bodyLayout.setPattern(body);
         bodyLayout.start();
-
+        
+        evaluator = new OnMarkerEvaluator();
+        evaluator.setContext(context);
+        for (String item : markers.split(",")) {
+            evaluator.addMarker(item.trim());
+        }
+        evaluator.start();
         executor = Executors.newCachedThreadPool();
 
         super.start();
+    }
+
+    @Override
+    public void stop() {
+        evaluator.stop();
+        bodyLayout.stop();
+        subjectLayout.stop();
+        executor.shutdown();
+        super.stop();
     }
 
     @Override
@@ -103,6 +105,14 @@ public class EmailAppender extends AppenderBase<ILoggingEvent> {
         } catch (Exception ex) {
             System.out.println("Appender[" + getName() + "] : " + ex.getMessage());
         }
+    }
+    
+    public boolean isStartTLS() {
+        return startTLS;
+    }
+
+    public void setStartTLS(boolean startTLS) {
+        this.startTLS = startTLS;
     }
 
     public String getSmtpHost() {

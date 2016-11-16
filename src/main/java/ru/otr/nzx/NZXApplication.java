@@ -1,8 +1,6 @@
 package ru.otr.nzx;
 
 import java.io.File;
-import java.io.IOException;
-import java.net.URISyntaxException;
 
 import javax.annotation.PreDestroy;
 
@@ -57,8 +55,8 @@ public class NZXApplication implements CommandLineRunner {
 
         } catch (ParseException e) {
             formatter.printHelp("java [-Dlogging.config=logback.xml] -jar nzx.jar", options);
-        } catch (IOException | URISyntaxException e) {
-            log.error(e.getMessage());
+        } catch (Exception e) {
+            log.error("Application has stopped!", e);
         }
     }
 

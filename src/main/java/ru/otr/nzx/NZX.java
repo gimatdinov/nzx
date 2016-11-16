@@ -11,19 +11,15 @@ import ru.otr.nzx.ftp.FTPServer;
 import ru.otr.nzx.http.HTTPServer;
 
 public class NZX extends Server {
-
     private final NZXConfig config;
 
-    private final List<FTPServer> ftpServers;
-
-    private final List<HTTPServer> httpServers;
+    private List<FTPServer> ftpServers = new ArrayList<>();
+    private List<HTTPServer> httpServers = new ArrayList<>();
 
     public NZX(NZXConfig config, Tracer tracer) {
         super(tracer.getSubtracer("NZX"));
-        this.tracer.debug("Config", config.toString());
         this.config = config;
-        this.ftpServers = new ArrayList<>();
-        this.httpServers = new ArrayList<>();
+        this.tracer.debug("Config", config.toString());
     }
 
     @Override
