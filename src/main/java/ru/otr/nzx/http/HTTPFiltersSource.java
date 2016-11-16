@@ -1,11 +1,9 @@
 package ru.otr.nzx.http;
 
-import java.math.BigInteger;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.util.Date;
+import java.util.UUID;
 
 import org.littleshoot.proxy.HttpFilters;
 import org.littleshoot.proxy.HttpFiltersSourceAdapter;
@@ -14,29 +12,20 @@ import cxc.jex.tracer.Tracer;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.http.HttpHeaders;
 import io.netty.handler.codec.http.HttpRequest;
+import ru.otr.nzx.Server.ObjectType;
 import ru.otr.nzx.config.NZXConfigHelper;
 import ru.otr.nzx.config.http.HTTPServerConfig;
 import ru.otr.nzx.config.http.location.LocationConfig;
-import ru.otr.nzx.http.HTTPServer.HttpObjectType;
 import ru.otr.nzx.http.location.LocationAdapter;
-import ru.otr.nzx.http.postprocessing.HTTPPostProcessor;
+import ru.otr.nzx.postprocessing.PostProcessor;
 
 public class HTTPFiltersSource extends HttpFiltersSourceAdapter {
 
-	private static MessageDigest md;
-	
 	private final HTTPServerConfig config;
-	private final HTTPPostProcessor postProcessor;
+	private final PostProcessor postProcessor;
 	private final Tracer tracer;
 
-	static {
-		try {
-			md = MessageDigest.getInstance("MD5");
-		} catch (NoSuchAlgorithmException e) {
-		}
-	}
-
-	public HTTPFiltersSource(HTTPServerConfig config, HTTPPostProcessor postProcessor, Tracer tracer) {
+	public HTTPFiltersSource(HTTPServerConfig config, PostProcessor postProcessor, Tracer tracer) {
 		this.config = config;
 		this.postProcessor = postProcessor;
 		this.tracer = tracer;
@@ -60,7 +49,7 @@ public class HTTPFiltersSource extends HttpFiltersSourceAdapter {
 		logLine.append(" ");
 		logLine.append(request.getUri());
 		logLine.append(" ");
-		logLine.append(HttpObjectType.REQ);
+		logLine.append(ObjectType.REQ);
 		logLine.append(" ");
 		logLine.append("LEN=" + request.headers().get(HttpHeaders.Names.CONTENT_LENGTH));
 		logLine.append(" ");
@@ -87,14 +76,6 @@ public class HTTPFiltersSource extends HttpFiltersSourceAdapter {
 	}
 
 	private static String makeRequestID() {
-		String result = null;
-		md.reset();
-		md.update((System.currentTimeMillis() + "-" + System.nanoTime()).getBytes());
-		result = new BigInteger(1, md.digest()).toString(16);
-		while (result.length() < 32) {
-			result = "0" + result;
-		}
-		result = result.substring(0, 10);
-		return result;
+		return UUID.randomUUID().toString().substring(26, 35);
 	}
 }

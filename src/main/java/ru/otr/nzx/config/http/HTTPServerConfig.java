@@ -10,7 +10,7 @@ import org.json.JSONObject;
 import ru.otr.nzx.config.NZXConfigHelper;
 import ru.otr.nzx.config.http.location.LocationConfig;
 import ru.otr.nzx.config.http.location.ProxyPassLocationConfig;
-import ru.otr.nzx.config.http.postprocessing.HTTPPostProcessorConfig;
+import ru.otr.nzx.config.postprocessing.PostProcessorConfig;
 
 public class HTTPServerConfig {
 	public final static String ENABLE = "enable";
@@ -30,7 +30,7 @@ public class HTTPServerConfig {
 	public final int max_response_buffer_size;
 
 	public final Map<String, LocationConfig> locations;
-	public final HTTPPostProcessorConfig post_processing;
+	public final PostProcessorConfig post_processing;
 
 	public String getListen() {
 		return listenHost + ":" + listenPort;
@@ -56,7 +56,7 @@ public class HTTPServerConfig {
 			}
 		}
 		if (src.has(POST_PROCESSING)) {
-			post_processing = new HTTPPostProcessorConfig(src.getJSONObject(POST_PROCESSING));
+			post_processing = new PostProcessorConfig(src.getJSONObject(POST_PROCESSING));
 		} else {
 			post_processing = null;
 		}

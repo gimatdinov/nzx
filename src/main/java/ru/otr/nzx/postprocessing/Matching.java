@@ -1,11 +1,11 @@
-package ru.otr.nzx.http.postprocessing;
+package ru.otr.nzx.postprocessing;
 
 import java.io.ByteArrayOutputStream;
 
 import cxc.jex.tracer.Tracer;
-import ru.otr.nzx.http.HTTPServer.HttpObjectType;
+import ru.otr.nzx.Server.ObjectType;
 
-public class Matching implements HTTPPostProcessor.Action {
+public class Matching implements PostProcessor.Action {
 
     private final String marker;
     private final int maxContentLength;
@@ -19,7 +19,7 @@ public class Matching implements HTTPPostProcessor.Action {
 
     @Override
     public void process(Tank tank, Tracer tracer) {
-        if (tank.type == HttpObjectType.RES && tank.contentLength <= maxContentLength) {
+        if (tank.type == ObjectType.RES && tank.contentLength <= maxContentLength) {
             try (ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
                 baos.write(tank.data, 0, tank.contentLength);
                 String content = baos.toString();

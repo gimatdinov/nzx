@@ -1,4 +1,4 @@
-package ru.otr.nzx.config.http.postprocessing;
+package ru.otr.nzx.config.postprocessing;
 
 import org.json.JSONArray;
 import org.json.JSONObject;

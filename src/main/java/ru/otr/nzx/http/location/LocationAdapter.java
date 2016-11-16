@@ -23,15 +23,15 @@ import io.netty.handler.codec.http.HttpRequest;
 import io.netty.handler.codec.http.HttpResponse;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import ru.otr.nzx.NZXConstants;
+import ru.otr.nzx.Server.ObjectType;
 import ru.otr.nzx.config.http.location.LocationConfig;
 import ru.otr.nzx.config.http.location.ProxyPassLocationConfig;
-import ru.otr.nzx.http.HTTPServer.HttpObjectType;
-import ru.otr.nzx.http.postprocessing.HTTPPostProcessor;
-import ru.otr.nzx.http.postprocessing.Tank;
+import ru.otr.nzx.postprocessing.PostProcessor;
+import ru.otr.nzx.postprocessing.Tank;
 
 public class LocationAdapter extends HttpFiltersAdapter {
 
-    private final HTTPPostProcessor postProcessor;
+    private final PostProcessor postProcessor;
     private final Tracer tracer;
 
     private final Date requestDateTime;
@@ -42,7 +42,7 @@ public class LocationAdapter extends HttpFiltersAdapter {
     private final URI passURI;
 
     public LocationAdapter(HttpRequest originalRequest, ChannelHandlerContext ctx, Date requestDateTime, String requestID, URI requestURI,
-            LocationConfig location, HTTPPostProcessor postProcessor, Tracer tracer) {
+            LocationConfig location, PostProcessor postProcessor, Tracer tracer) {
         super(originalRequest, ctx);
         this.requestDateTime = requestDateTime;
         this.requestID = requestID;
@@ -157,14 +157,14 @@ public class LocationAdapter extends HttpFiltersAdapter {
 
     protected void putToPostProcessor(HttpObject httpObject) {
         ByteBuf content = null;
-        HttpObjectType type = null;
+        ObjectType type = null;
         if (httpObject instanceof FullHttpRequest) {
             content = ((FullHttpRequest) httpObject).content();
-            type = HttpObjectType.REQ;
+            type = ObjectType.REQ;
         }
         if (httpObject instanceof FullHttpResponse) {
             content = ((FullHttpResponse) httpObject).content();
-            type = HttpObjectType.RES;
+            type = ObjectType.RES;
         }
 
         if (content != null && content.isReadable()) {
@@ -179,12 +179,6 @@ public class LocationAdapter extends HttpFiltersAdapter {
             content.readBytes(tank.data, 0, Math.min(content.readableBytes(), tank.data.length));
             postProcessor.put(tank);
             content.setIndex(rix, content.writerIndex());
-        }
-        postProcessor.lock.lock();
-        try {
-            postProcessor.check.signalAll();
-        } finally {
-            postProcessor.lock.unlock();
         }
     }
 

@@ -17,17 +17,13 @@ import io.netty.handler.codec.http.HttpRequest;
 import ru.otr.nzx.Server;
 import ru.otr.nzx.config.http.HTTPServerConfig;
 import ru.otr.nzx.config.http.location.LocationConfig;
-import ru.otr.nzx.http.postprocessing.HTTPPostProcessor;
+import ru.otr.nzx.postprocessing.PostProcessor;
 
 public class HTTPServer extends Server {
-	public static enum HttpObjectType {
-		REQ, RES
-	}
-
 	private final HTTPServerConfig config;
 	private HttpProxyServerBootstrap srvBootstrap;
 	private HttpProxyServer srv;
-	private HTTPPostProcessor postProcessor;
+	private PostProcessor postProcessor;
 
 	public HTTPServer(HTTPServerConfig config, Tracer tracer) {
 		super(tracer.getSubtracer(config.name));
@@ -39,7 +35,7 @@ public class HTTPServer extends Server {
 		tracer.info("Bootstrap", "listen " + config.listenHost + ":" + config.listenPort);
         if (config.post_processing != null && config.post_processing.enable) {
         	int bufferSize= Math.max(config.max_request_buffer_size, config.max_response_buffer_size);
-            postProcessor = new HTTPPostProcessor("#PostProcessor", config.post_processing, bufferSize, tracer);
+            postProcessor = new PostProcessor("#PostProcessor", config.post_processing, bufferSize, tracer);
             postProcessor.bootstrap();
         }
 		for (LocationConfig item : config.locations.values()) {

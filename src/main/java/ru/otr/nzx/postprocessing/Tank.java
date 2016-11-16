@@ -1,4 +1,4 @@
-package ru.otr.nzx.http.postprocessing;
+package ru.otr.nzx.postprocessing;
 
 import java.net.URI;
 import java.text.DateFormat;
@@ -7,12 +7,12 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
-import ru.otr.nzx.http.HTTPServer.HttpObjectType;
+import ru.otr.nzx.Server.ObjectType;
 
 public class Tank {
     private static final DateFormat idDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
 
-    public HttpObjectType type;
+    public ObjectType type;
     public Date requestDateTime;
     public String requestID;
     public URI requestURI;

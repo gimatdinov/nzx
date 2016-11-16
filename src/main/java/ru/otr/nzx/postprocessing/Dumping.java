@@ -1,4 +1,4 @@
-package ru.otr.nzx.http.postprocessing;
+package ru.otr.nzx.postprocessing;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -8,7 +8,7 @@ import java.text.SimpleDateFormat;
 import cxc.jex.tracer.Tracer;
 import ru.otr.nzx.config.http.location.LocationConfig;
 
-public class Dumping implements HTTPPostProcessor.Action {
+public class Dumping implements PostProcessor.Action {
     private static final DateFormat idDateFormat = new SimpleDateFormat("yyyy-MM-dd_HHmmss_SSS");
     private static final DateFormat dayDateFormat = new SimpleDateFormat("yyyy-MM-dd");
 
