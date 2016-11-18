@@ -12,18 +12,22 @@ import org.littleshoot.proxy.HttpProxyServer;
 import org.littleshoot.proxy.HttpProxyServerBootstrap;
 import org.littleshoot.proxy.impl.DefaultHttpProxyServer;
 
+import cxc.jex.server.Server;
 import cxc.jex.tracer.Tracer;
 import io.netty.handler.codec.http.HttpRequest;
-import ru.otr.nzx.Server;
 import ru.otr.nzx.config.http.HTTPServerConfig;
 import ru.otr.nzx.config.http.location.LocationConfig;
-import ru.otr.nzx.postprocessing.PostProcessor;
+import ru.otr.nzx.postprocessing.NZXPostProcessor;
 
 public class HTTPServer extends Server {
+    public static enum ObjectType {
+        REQ, RES
+    }
+
     private final HTTPServerConfig config;
     private HttpProxyServerBootstrap srvBootstrap;
     private HttpProxyServer srv;
-    private PostProcessor postProcessor;
+    private NZXPostProcessor postProcessor;
 
     public HTTPServer(HTTPServerConfig config, Tracer tracer) {
         super(tracer.getSubtracer(config.name));
@@ -35,11 +39,11 @@ public class HTTPServer extends Server {
         tracer.info("Bootstrap", "listen " + config.listenHost + ":" + config.listenPort);
         if (config.post_processing != null && config.post_processing.enable) {
             int bufferSize = Math.max(config.max_request_buffer_size, config.max_response_buffer_size);
-            postProcessor = new PostProcessor("#PostProcessor", config.post_processing, bufferSize, tracer);
+            postProcessor = new NZXPostProcessor("#PostProcessor", config.post_processing, bufferSize, tracer);
             postProcessor.bootstrap();
         }
         for (LocationConfig item : config.locations.values()) {
-            if (item.post_processing_enable) {
+            if (item.enable && item.post_processing_enable) {
                 if (postProcessor == null) {
                     throw new RuntimeException("post_processing is not enable, need for location [" + item.path + "]");
                 }

@@ -7,21 +7,22 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
-import ru.otr.nzx.Server.ObjectType;
+import cxc.jex.postprocessing.Tank;
+import ru.otr.nzx.http.HTTPServer.ObjectType;
 
-public class Tank {
+public class NZXTank implements Tank {
     private static final DateFormat idDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
 
     public ObjectType type;
     public Date requestDateTime;
     public String requestID;
     public URI requestURI;
-    public final byte[] data;
+    final byte[] data;
     public int contentLength;
 
     public final Map<String, String> properties = new HashMap<>();
 
-    Tank(int capacity) {
+    NZXTank(int capacity) {
         data = new byte[capacity];
     }
 
@@ -45,4 +46,13 @@ public class Tank {
         return result.toString();
     }
 
+    @Override
+    public byte[] getData() {
+        return data;
+    }
+
+    @Override
+    public int getContentLength() {
+        return contentLength;
+    }
 }

@@ -1,12 +1,9 @@
-package ru.otr.nzx;
+package cxc.jex.server;
 
 import cxc.jex.tracer.Tracer;
 
 public abstract class Server {
-	public static enum ObjectType {
-		REQ, RES
-	}
-	
+
     protected final Tracer tracer;
 
     public Server(Tracer tracer) {

@@ -8,15 +8,15 @@ import java.util.UUID;
 import org.littleshoot.proxy.HttpFilters;
 import org.littleshoot.proxy.HttpFiltersSourceAdapter;
 
+import cxc.jex.postprocessing.PostProcessor;
 import cxc.jex.tracer.Tracer;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.http.HttpHeaders;
 import io.netty.handler.codec.http.HttpRequest;
-import ru.otr.nzx.Server.ObjectType;
 import ru.otr.nzx.config.http.HTTPServerConfig;
 import ru.otr.nzx.config.http.location.*;
+import ru.otr.nzx.http.HTTPServer.ObjectType;
 import ru.otr.nzx.http.location.*;
-import ru.otr.nzx.postprocessing.PostProcessor;
 
 public class HTTPFiltersSource extends HttpFiltersSourceAdapter {
 
@@ -68,7 +68,7 @@ public class HTTPFiltersSource extends HttpFiltersSourceAdapter {
         try {
             URI requestURI = new URI(request.getUri()).normalize();
             LocationConfig location = config.locate(requestURI.getPath());
-            if (location != null) {
+            if (location != null && location.enable) {
                 if (location instanceof ProxyPassLocationConfig) {
                     return new ProxyPassLocation(request, ctx, requestDateTime, requestID, requestURI, (ProxyPassLocationConfig) location, postProcessor,
                             tracer.getSubtracer(location.path));

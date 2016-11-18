@@ -1,4 +1,4 @@
-package ru.otr.nzx.ftp;
+package cxc.jex.ftp.server;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;

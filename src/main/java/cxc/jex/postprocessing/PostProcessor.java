@@ -1,85 +1,53 @@
-package ru.otr.nzx.postprocessing;
+package cxc.jex.postprocessing;
 
-import java.lang.reflect.Constructor;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
-import com.google.common.util.concurrent.ThreadFactoryBuilder;
-
+import cxc.jex.server.Server;
 import cxc.jex.tracer.Tracer;
-import ru.otr.nzx.Server;
-import ru.otr.nzx.config.postprocessing.ActionConfig;
-import ru.otr.nzx.config.postprocessing.PostProcessorConfig;
 
-public class PostProcessor extends Server {
-    public static interface Action {
-        void process(Tank tank, Tracer tracer);
-    }
-
+public abstract class PostProcessor extends Server {
     private Lock lock = new ReentrantLock();
     private Condition comingEmptyTanks = lock.newCondition();
-
-    private final PostProcessorConfig config;
-    private final int bufferSize;
 
     private ExecutorService executor;
 
     boolean started;
     final ConcurrentLinkedQueue<Tank> loadedTanks = new ConcurrentLinkedQueue<>();
     final ConcurrentLinkedQueue<Tank> emptyTanks = new ConcurrentLinkedQueue<>();
-    final List<Action> actions = new ArrayList<>();
+    protected final List<Action> actions = new ArrayList<>();
 
+    private int maxTanksCount;
     private List<Worker> workers = new ArrayList<>();
     private Random random = new Random();
 
-    public PostProcessor(String name, PostProcessorConfig config, int bufferSize, Tracer tracer) {
+    public PostProcessor(String name, Tracer tracer) {
         super(tracer.getSubtracer(name));
-        this.config = config;
-        this.bufferSize = bufferSize;
     }
 
-    public void registerAction(Action action) {
-        actions.add(action);
-    }
-
-    private void loadActions(ActionConfig actionConfig) {
-        try {
-            Class<?> actionClass = Class.forName(actionConfig.clazz);
-            Class<?>[] paramTypes = new Class[actionConfig.parameters.length];
-            for (int i = 0; i < paramTypes.length; i++) {
-                paramTypes[i] = String.class;
-            }
-            Constructor<?> actionConstrct = actionClass.getConstructor(paramTypes);
-            Object action = actionConstrct.newInstance((Object[]) actionConfig.parameters);
-            registerAction((Action) action);
-        } catch (Exception e) {
-            throw new RuntimeException(e);
+    public void init(int workers, int maxTanksCount, List<Action> actions, ThreadFactory threadFactory) {
+        this.maxTanksCount = maxTanksCount;
+        executor = Executors.newFixedThreadPool(workers, threadFactory);
+        for (int i = 0; i < workers; i++) {
+            this.workers.add(new Worker(this));
         }
-    }
-
-    @Override
-    public void bootstrap() {
-        executor = Executors.newFixedThreadPool(config.workers, new ThreadFactoryBuilder().setNameFormat("nzx-PostProcessor-Worker-%d").build());
-        for (int i = 0; i < config.workers; i++) {
-            workers.add(new Worker(this));
-        }
-        registerAction(new Dumping());
-        for (ActionConfig item : config.actions) {
-            loadActions(item);
+        for (Action item : actions) {
+            this.actions.add(item);
         }
     }
 
     @Override
     public void start() {
         started = true;
-        tracer.info("Starting", "count of workers " + config.workers);
+        tracer.info("Starting", "count of workers " + workers.size());
         for (Worker item : workers) {
             executor.submit(item);
         }
@@ -95,12 +63,14 @@ public class PostProcessor extends Server {
         tracer.info("Stoped", "");
     }
 
-    public Tank getTank() {
+    protected abstract Tank makeTank();
+
+    public Tank getTank(int contentLength) {
         Tank result = emptyTanks.poll();
         if (result == null) {
             int tanksCount = loadedTanks.size() + emptyTanks.size();
-            if (tanksCount < config.max_count_of_tanks || config.max_count_of_tanks == 0) {
-                result = new Tank(bufferSize);
+            if (tanksCount < maxTanksCount || maxTanksCount == 0) {
+                result = makeTank();
                 tracer.info("Tank.Created", "count of tanks ~ " + (tanksCount + 1));
             } else {
                 tracer.info("Tank.Awaiting", "count of tanks ~ " + (tanksCount + 1));
@@ -140,20 +110,11 @@ public class PostProcessor extends Server {
         return started;
     }
 
-    public boolean isDumpingEnable() {
-        for (Action action : actions) {
-            if (action instanceof Dumping) {
-                return true;
-            }
-        }
-        return false;
-    }
-
     Tracer getTracer() {
         return tracer;
     }
 
-    public void checkEmptyTanks() {
+    void checkEmptyTanks() {
         lock.lock();
         try {
             comingEmptyTanks.signal();

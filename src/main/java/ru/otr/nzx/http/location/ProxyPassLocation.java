@@ -5,6 +5,7 @@ import java.net.URISyntaxException;
 import java.util.Date;
 import java.util.Map;
 
+import cxc.jex.postprocessing.PostProcessor;
 import cxc.jex.tracer.Tracer;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.http.HttpHeaders;
@@ -13,7 +14,6 @@ import io.netty.handler.codec.http.HttpObject;
 import io.netty.handler.codec.http.HttpRequest;
 import io.netty.handler.codec.http.HttpResponse;
 import ru.otr.nzx.config.http.location.ProxyPassLocationConfig;
-import ru.otr.nzx.postprocessing.PostProcessor;
 
 public class ProxyPassLocation extends Location {
 
@@ -33,38 +33,42 @@ public class ProxyPassLocation extends Location {
     @Override
     public HttpResponse clientToProxyRequest(HttpObject httpObject) {
         tracer.info("Request", "Pass " + passURI.getPath());
-        HttpRequest request = (HttpRequest) httpObject;
-        ProxyPassLocationConfig cfg = (ProxyPassLocationConfig) config;
-        request.setUri(passURI.toString());
+        if (httpObject instanceof HttpRequest) {
+            HttpRequest request = (HttpRequest) httpObject;
+            ProxyPassLocationConfig cfg = (ProxyPassLocationConfig) config;
+            request.setUri(passURI.toString());
 
-        if (cfg.proxy_set_headers.size() > 0) {
-            tracer.debug("Server.Request.SetHeaders", "set headers=" + cfg.proxy_set_headers);
-            for (Map.Entry<String, String> item : cfg.proxy_set_headers.entrySet()) {
-                HttpHeaders.setHeader(request, item.getKey(), item.getValue());
+            if (cfg.proxy_set_headers.size() > 0) {
+                tracer.debug("Server.Request.SetHeaders", "set headers=" + cfg.proxy_set_headers);
+                for (Map.Entry<String, String> item : cfg.proxy_set_headers.entrySet()) {
+                    HttpHeaders.setHeader(request, item.getKey(), item.getValue());
+                }
             }
-        }
 
-        if (config.post_processing_enable && request.getMethod().equals(HttpMethod.POST)) {
-            putToPostProcessor(httpObject);
+            if (config.post_processing_enable && request.getMethod().equals(HttpMethod.POST)) {
+                putToPostProcessor(httpObject);
+            }
         }
         return null;
     }
 
     @Override
     public HttpObject serverToProxyResponse(HttpObject httpObject) {
-        HttpResponse response = (HttpResponse) httpObject;
-        StringBuilder logLine = new StringBuilder();
-        logLine.append("LEN=" + response.headers().get(HttpHeaders.Names.CONTENT_LENGTH));
-        logLine.append(" ");
-        logLine.append(response.getProtocolVersion().toString());
-        logLine.append(" ");
-        logLine.append("[" + response.getStatus() + "]");
-        logLine.append(" ");
-        logLine.append(response.getDecoderResult().toString());
-        tracer.info("Server.Response", logLine.toString());
+        if (httpObject instanceof HttpResponse) {
+            HttpResponse response = (HttpResponse) httpObject;
+            StringBuilder logLine = new StringBuilder();
+            logLine.append("LEN=" + response.headers().get(HttpHeaders.Names.CONTENT_LENGTH));
+            logLine.append(" ");
+            logLine.append(response.getProtocolVersion().toString());
+            logLine.append(" ");
+            logLine.append("[" + response.getStatus() + "]");
+            logLine.append(" ");
+            logLine.append(response.getDecoderResult().toString());
+            tracer.info("Server.Response", logLine.toString());
 
-        if (config.post_processing_enable) {
-            putToPostProcessor(response);
+            if (config.post_processing_enable) {
+                putToPostProcessor(response);
+            }
         }
         return httpObject;
     }

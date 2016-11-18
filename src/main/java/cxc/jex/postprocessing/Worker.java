@@ -1,10 +1,8 @@
-package ru.otr.nzx.postprocessing;
+package cxc.jex.postprocessing;
 
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
-
-import ru.otr.nzx.postprocessing.PostProcessor.Action;
 
 class Worker implements Runnable {
 	private Lock lock = new ReentrantLock();

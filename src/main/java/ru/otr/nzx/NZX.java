@@ -3,6 +3,7 @@ package ru.otr.nzx;
 import java.util.ArrayList;
 import java.util.List;
 
+import cxc.jex.server.Server;
 import cxc.jex.tracer.Tracer;
 import ru.otr.nzx.config.NZXConfig;
 import ru.otr.nzx.config.ftp.FTPServerConfig;
@@ -38,6 +39,9 @@ public class NZX extends Server {
                 httpServer.bootstrap();
                 httpServers.add(httpServer);
             }
+        }
+        if (ftpServers.size() == 0 && httpServers.size() == 0) {
+            Thread.currentThread().interrupt();
         }
     }
 

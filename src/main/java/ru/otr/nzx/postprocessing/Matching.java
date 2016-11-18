@@ -2,10 +2,12 @@ package ru.otr.nzx.postprocessing;
 
 import java.io.ByteArrayOutputStream;
 
+import cxc.jex.postprocessing.Action;
+import cxc.jex.postprocessing.Tank;
 import cxc.jex.tracer.Tracer;
-import ru.otr.nzx.Server.ObjectType;
+import ru.otr.nzx.http.HTTPServer.ObjectType;
 
-public class Matching implements PostProcessor.Action {
+public class Matching implements Action {
 
     private final String marker;
     private final int maxContentLength;
@@ -18,10 +20,11 @@ public class Matching implements PostProcessor.Action {
     }
 
     @Override
-    public void process(Tank tank, Tracer tracer) {
-        if (tank.type == ObjectType.RES && tank.contentLength <= maxContentLength) {
+    public void process(Tank t, Tracer tracer) {
+        NZXTank tank = (NZXTank) t;
+        if (tank.type == ObjectType.RES && tank.getContentLength() <= maxContentLength) {
             try (ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
-                baos.write(tank.data, 0, tank.contentLength);
+                baos.write(tank.getData(), 0, tank.getContentLength());
                 String content = baos.toString();
                 if (content.matches(regex)) {
                     tracer.info("Matching." + marker + "/" + marker, tank.toString());

@@ -40,12 +40,8 @@ public class FTPServerConfig {
         listenHost = listen[0];
         listenPort = Integer.valueOf(listen[1]);
 
-        active_enable = src.optBoolean(ACTIVE_ENABLE, true);
-        if (!active_enable) {
-            passive_ports = src.getString(PASSIVE_PORTS);
-        } else {
-            passive_ports = null;
-        }
+        active_enable = src.optBoolean(ACTIVE_ENABLE, false);
+        passive_ports = src.optString(PASSIVE_PORTS, null);
 
         directory = src.getString(DIRECTORY);
         anonymous_enable = src.optBoolean(ANONYMOUS_ENABLE);
@@ -67,7 +63,9 @@ public class FTPServerConfig {
         server.put(NAME, name);
         server.put(LISTEN, getListen());
         server.put(ACTIVE_ENABLE, active_enable);
-        server.put(PASSIVE_PORTS, passive_ports);
+        if (passive_ports != null) {
+            server.put(PASSIVE_PORTS, passive_ports);
+        }
         server.put(DIRECTORY, directory);
         server.put(ANONYMOUS_ENABLE, anonymous_enable);
         for (FTPUserConfig item : users) {

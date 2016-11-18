@@ -5,6 +5,7 @@ import java.util.Date;
 
 import org.littleshoot.proxy.HttpFiltersAdapter;
 
+import cxc.jex.postprocessing.PostProcessor;
 import cxc.jex.tracer.Tracer;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
@@ -17,13 +18,13 @@ import io.netty.handler.codec.http.HttpObject;
 import io.netty.handler.codec.http.HttpRequest;
 import io.netty.handler.codec.http.HttpResponse;
 import io.netty.handler.codec.http.HttpResponseStatus;
+import io.netty.handler.codec.http.HttpVersion;
 import io.netty.handler.codec.http.HttpHeaders.Names;
 import io.netty.handler.codec.http.HttpHeaders.Values;
 import ru.otr.nzx.NZXConstants;
-import ru.otr.nzx.Server.ObjectType;
 import ru.otr.nzx.config.http.location.LocationConfig;
-import ru.otr.nzx.postprocessing.PostProcessor;
-import ru.otr.nzx.postprocessing.Tank;
+import ru.otr.nzx.http.HTTPServer.ObjectType;
+import ru.otr.nzx.postprocessing.NZXTank;
 
 public class Location extends HttpFiltersAdapter {
 
@@ -53,8 +54,12 @@ public class Location extends HttpFiltersAdapter {
     @Override
     public HttpResponse clientToProxyRequest(HttpObject httpObject) {
         this.tracer.error("Request", "UnsupportedLocationConfig " + config.getClass().getName());
+        HttpVersion httpVersion = HttpVersion.HTTP_1_1;
+        if (httpObject instanceof HttpRequest) {
+            httpVersion = ((HttpRequest) httpObject).getProtocolVersion();
+        }
         ByteBuf buffer = Unpooled.wrappedBuffer(ANSWER_500.getBytes());
-        HttpResponse response = new DefaultFullHttpResponse(((HttpRequest) httpObject).getProtocolVersion(), HttpResponseStatus.NOT_FOUND, buffer);
+        HttpResponse response = new DefaultFullHttpResponse(httpVersion, HttpResponseStatus.INTERNAL_SERVER_ERROR, buffer);
         HttpHeaders.setContentLength(response, buffer.readableBytes());
         HttpHeaders.setHeader(response, HttpHeaders.Names.CONTENT_TYPE, "text/html; charset=UTF-8");
         HttpHeaders.setHeader(response, Names.CONNECTION, Values.CLOSE);
@@ -75,14 +80,14 @@ public class Location extends HttpFiltersAdapter {
 
         if (content != null && content.isReadable()) {
             int rix = content.readerIndex();
-            Tank tank = postProcessor.getTank();
+            NZXTank tank = (NZXTank) postProcessor.getTank(content.readableBytes());
             tank.type = type;
             tank.requestID = requestID;
             tank.requestDateTime = requestDateTime;
             tank.requestURI = requestURI;
-            tank.properties.put(LocationConfig.DUMP_CONTENT_STORE, config.dump_content_store);
             tank.contentLength = content.readableBytes();
-            content.readBytes(tank.data, 0, Math.min(content.readableBytes(), tank.data.length));
+            tank.properties.put(LocationConfig.DUMP_CONTENT_STORE, config.dump_content_store);
+            content.readBytes(tank.getData(), 0, Math.min(content.readableBytes(), tank.getData().length));
             postProcessor.put(tank);
             content.setIndex(rix, content.writerIndex());
         }

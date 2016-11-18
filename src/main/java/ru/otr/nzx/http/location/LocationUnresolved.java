@@ -3,6 +3,7 @@ package ru.otr.nzx.http.location;
 import java.net.URI;
 import java.util.Date;
 
+import cxc.jex.postprocessing.PostProcessor;
 import cxc.jex.tracer.Tracer;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
@@ -13,9 +14,9 @@ import io.netty.handler.codec.http.HttpObject;
 import io.netty.handler.codec.http.HttpRequest;
 import io.netty.handler.codec.http.HttpResponse;
 import io.netty.handler.codec.http.HttpResponseStatus;
+import io.netty.handler.codec.http.HttpVersion;
 import ru.otr.nzx.NZXConstants;
 import ru.otr.nzx.config.http.location.LocationConfig;
-import ru.otr.nzx.postprocessing.PostProcessor;
 
 public class LocationUnresolved extends Location {
 
@@ -32,7 +33,11 @@ public class LocationUnresolved extends Location {
     public HttpResponse clientToProxyRequest(HttpObject httpObject) {
         this.tracer.info("Request", requestURI.getPath());
         ByteBuf buffer = Unpooled.wrappedBuffer(ANSWER_404.getBytes());
-        HttpResponse response = new DefaultFullHttpResponse(((HttpRequest) httpObject).getProtocolVersion(), HttpResponseStatus.NOT_FOUND, buffer);
+        HttpVersion httpVersion = HttpVersion.HTTP_1_1;
+        if (httpObject instanceof HttpRequest) {
+            httpVersion = ((HttpRequest) httpObject).getProtocolVersion();
+        }
+        HttpResponse response = new DefaultFullHttpResponse(httpVersion, HttpResponseStatus.NOT_FOUND, buffer);
         HttpHeaders.setContentLength(response, buffer.readableBytes());
         HttpHeaders.setHeader(response, HttpHeaders.Names.CONTENT_TYPE, "text/html; charset=UTF-8");
 
