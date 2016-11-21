@@ -14,6 +14,7 @@ import io.netty.handler.codec.http.HttpObject;
 import io.netty.handler.codec.http.HttpRequest;
 import io.netty.handler.codec.http.HttpResponse;
 import ru.otr.nzx.config.http.location.ProxyPassLocationConfig;
+import ru.otr.nzx.http.HTTPServer.ObjectType;
 
 public class ProxyPassLocation extends Location {
 
@@ -57,13 +58,17 @@ public class ProxyPassLocation extends Location {
         if (httpObject instanceof HttpResponse) {
             HttpResponse response = (HttpResponse) httpObject;
             StringBuilder logLine = new StringBuilder();
+            logLine.append(ObjectType.RES);
+            logLine.append("(");
+            logLine.append(response.getStatus().code());
+            logLine.append(") ");
             logLine.append("LEN=" + response.headers().get(HttpHeaders.Names.CONTENT_LENGTH));
             logLine.append(" ");
             logLine.append(response.getProtocolVersion().toString());
             logLine.append(" ");
-            logLine.append("[" + response.getStatus() + "]");
-            logLine.append(" ");
             logLine.append(response.getDecoderResult().toString());
+
+
             tracer.info("Server.Response", logLine.toString());
 
             if (config.post_processing_enable) {

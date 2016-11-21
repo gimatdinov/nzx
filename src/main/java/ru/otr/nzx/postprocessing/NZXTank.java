@@ -17,6 +17,8 @@ public class NZXTank implements Tank {
     public Date requestDateTime;
     public String requestID;
     public URI requestURI;
+    public int responseStatusCode;
+    public boolean success;
     final byte[] data;
     public int contentLength;
 
@@ -40,9 +42,16 @@ public class NZXTank implements Tank {
         result.append(requestURI.getPath());
         result.append(" ");
         result.append(type);
+        if (type == ObjectType.RES) {
+            result.append("(");
+            result.append(responseStatusCode);
+            result.append(")");
+        }
         result.append(" ");
         result.append("LEN=");
         result.append(contentLength);
+        result.append(" ");
+        result.append(success ? "success" : "unfinished");
         return result.toString();
     }
 
