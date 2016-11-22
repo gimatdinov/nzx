@@ -14,4 +14,4 @@ HTTP proxy, based on LittleProxy (https://github.com/adamfisk/LittleProxy), conf
 ``mvn package``
 
 ## Run
-``java -Dlogging.config=src/test/config/logback.xml -Dnzx_log=log -jar target/nzx-0.8.jar -n Test -c src/test/config/nzx_TEST.conf``
+``java -Dlogging.config=src/test/config/logback.xml -Dnzx_log=log -jar target/nzx-0.8.1.jar -n Test -c src/test/config/nzx_TEST.conf``
