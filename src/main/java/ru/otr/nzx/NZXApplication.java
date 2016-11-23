@@ -60,7 +60,7 @@ public class NZXApplication implements CommandLineRunner {
         }
     }
 
-    public static void main(String[] args) throws Exception {
+    public static void main(String... args) throws Exception {
         SpringApplication.run(NZXApplication.class, args);
     }
 }

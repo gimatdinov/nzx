@@ -4,15 +4,16 @@ import cxc.jex.postprocessing.Action;
 import cxc.jex.postprocessing.Tank;
 import cxc.jex.tracer.Tracer;
 import ru.otr.nzx.http.HTTPServer.ObjectType;
+import ru.otr.nzx.util.NZXUtil;
 
-public class HTTPResponseFailure implements Action {
+public class FailHttpResponseProcessing implements Action {
 
 	private final String marker;
 	private final boolean httpSC400;
 	private final boolean httpSC500;
 	private final boolean httpSuccess;
 
-	public HTTPResponseFailure(String marker, String httpSC400, String httpSC500, String httpSuccess) {
+	public FailHttpResponseProcessing(String marker, String httpSC400, String httpSC500, String httpSuccess) {
 		this.marker = marker;
 		this.httpSC400 = new Boolean(httpSC400);
 		this.httpSC500 = new Boolean(httpSC500);
@@ -34,7 +35,7 @@ public class HTTPResponseFailure implements Action {
 				flag = true;
 			}
 			if (flag) {
-				tracer.info("Response.StatusCode." + tank.responseStatusCode + "/" + marker, tank.toString());
+				tracer.info("Response.StatusCode." + tank.responseStatusCode + "/" + marker, NZXUtil.tankToShortLine(tank));
 			}
 		}
 	}

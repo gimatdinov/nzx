@@ -3,18 +3,12 @@ package ru.otr.nzx.http;
 import java.io.File;
 import java.net.InetSocketAddress;
 
-import java.util.Queue;
-
-import org.littleshoot.proxy.ChainedProxy;
-import org.littleshoot.proxy.ChainedProxyAdapter;
-import org.littleshoot.proxy.ChainedProxyManager;
 import org.littleshoot.proxy.HttpProxyServer;
 import org.littleshoot.proxy.HttpProxyServerBootstrap;
 import org.littleshoot.proxy.impl.DefaultHttpProxyServer;
 
 import cxc.jex.server.Server;
 import cxc.jex.tracer.Tracer;
-import io.netty.handler.codec.http.HttpRequest;
 import ru.otr.nzx.config.http.HTTPServerConfig;
 import ru.otr.nzx.config.http.location.LocationConfig;
 import ru.otr.nzx.postprocessing.NZXPostProcessor;
@@ -66,11 +60,13 @@ public class HTTPServer extends Server {
             srvBootstrap.withIdleConnectionTimeout(config.idle_connection_timeout);
         }
         srvBootstrap.withFiltersSource(new HTTPFiltersSource(config, postProcessor, tracer));
-        srvBootstrap.withChainProxyManager(new ChainedProxyManager() {
-            public void lookupChainedProxies(HttpRequest httpRequest, Queue<ChainedProxy> chainedProxies) {
-                chainedProxies.add(ChainedProxyAdapter.FALLBACK_TO_DIRECT_CONNECTION);
-            }
-        });
+        
+//        srvBootstrap.withChainProxyManager(new ChainedProxyManager() {
+//            public void lookupChainedProxies(HttpRequest httpRequest, Queue<ChainedProxy> chainedProxies) {
+//                chainedProxies.add(ChainedProxyAdapter.FALLBACK_TO_DIRECT_CONNECTION);
+//            }
+//        });
+
     }
 
     @Override

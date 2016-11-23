@@ -108,6 +108,7 @@ public class HTTPServerConfig {
 
     public LocationConfig locate(String path) {
         LocationConfig result = null;
+        path = (path != null) ? path : "/";
         String part[] = LocationConfig.cleanPath(path).split("/");
         for (int i = 0; i < part.length; i++) {
             StringBuilder used = new StringBuilder();

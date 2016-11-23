@@ -7,6 +7,7 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -20,7 +21,7 @@ public abstract class PostProcessor extends Server {
 
     private ExecutorService executor;
 
-    boolean started;
+    final AtomicBoolean started = new AtomicBoolean(false);
     final ConcurrentLinkedQueue<Tank> loadedTanks = new ConcurrentLinkedQueue<>();
     final ConcurrentLinkedQueue<Tank> emptyTanks = new ConcurrentLinkedQueue<>();
     protected final List<Action> actions = new ArrayList<>();
@@ -46,7 +47,7 @@ public abstract class PostProcessor extends Server {
 
     @Override
     public void start() {
-        started = true;
+        started.set(true);;
         tracer.info("Starting", "count of workers " + workers.size());
         for (Worker item : workers) {
             executor.submit(item);
@@ -55,7 +56,7 @@ public abstract class PostProcessor extends Server {
 
     @Override
     public void stop() {
-        started = false;
+        started.set(false);
         for (Worker item : workers) {
             item.signal();
         }
@@ -95,7 +96,7 @@ public abstract class PostProcessor extends Server {
     }
 
     public void put(Tank loadedTank) {
-        if (!started) {
+        if (!started.get()) {
             tracer.error("Error", "Not started!");
             return;
         }
@@ -107,7 +108,7 @@ public abstract class PostProcessor extends Server {
     }
 
     public boolean isStarted() {
-        return started;
+        return started.get();
     }
 
     Tracer getTracer() {

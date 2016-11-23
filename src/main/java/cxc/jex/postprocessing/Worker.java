@@ -16,7 +16,7 @@ class Worker implements Runnable {
 	@Override
 	public void run() {
 		postProcessor.getTracer().info("Worker.Starting", "");
-		while (postProcessor.started) {
+		while (postProcessor.started.get()) {
 			lock.lock();
 			Tank tank = postProcessor.loadedTanks.poll();
 			try {

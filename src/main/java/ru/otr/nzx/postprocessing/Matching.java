@@ -6,6 +6,7 @@ import cxc.jex.postprocessing.Action;
 import cxc.jex.postprocessing.Tank;
 import cxc.jex.tracer.Tracer;
 import ru.otr.nzx.http.HTTPServer.ObjectType;
+import ru.otr.nzx.util.NZXUtil;
 
 public class Matching implements Action {
 
@@ -27,11 +28,11 @@ public class Matching implements Action {
                 baos.write(tank.getData(), 0, tank.getContentLength());
                 String content = baos.toString();
                 if (content.matches(regex)) {
-                    tracer.info("Matching." + marker + "/" + marker, tank.toString());
+                    tracer.info("Matching." + marker + "/" + marker, NZXUtil.tankToShortLine(tank));
                 }
 
             } catch (Exception e) {
-                tracer.error("Matching." + marker + ".Error/NOTIFY_ADMIN", tank.toString(), e);
+                tracer.error("Matching." + marker + ".Error/NOTIFY_ADMIN", NZXUtil.tankToShortLine(tank), e);
             }
         }
 
