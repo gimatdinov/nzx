@@ -60,7 +60,7 @@ public class ProxyPassLocation extends Location {
                         putToPostProcessor(response);
                     }
                 } catch (Exception e) {
-                    response = FailureLocation.makeFailureResponse(500, request.getProtocolVersion());
+                    response = NZXUtil.makeFailureResponse(500, request.getProtocolVersion());
                     tracer.error("Server.Connection.Failed/CONNECTION_ERROR", "MITM", e);
                 }
 

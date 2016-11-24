@@ -3,7 +3,6 @@ package ru.otr.nzx.https;
 import java.util.Map.Entry;
 
 import org.apache.commons.io.output.ByteArrayOutputStream;
-
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
@@ -46,7 +45,7 @@ public class MITM {
 				req = postMsg;
 				break;
 			default:
-				throw new Exception("UnsupportedHttpMethod:" + request.getMethod().name());
+				throw new Exception("MethodNotAllowed");
 			}
 			for (Entry<String, String> item : request.headers().entries()) {
 				if (!item.getKey().equals(HTTP.CONTENT_LEN)) {
@@ -55,7 +54,7 @@ public class MITM {
 			}
 			res = httpclient.execute(req);
 			ByteBuf buffer = Unpooled.buffer(0);
-			if (res.getEntity() != null) {
+			if (res.getEntity() != null && res.getEntity().getContent() != null) {
 				try (ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
 					baos.write(res.getEntity().getContent());
 					buffer = Unpooled.wrappedBuffer(baos.toByteArray());

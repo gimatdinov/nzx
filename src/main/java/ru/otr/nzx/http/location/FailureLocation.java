@@ -5,21 +5,14 @@ import java.util.Date;
 
 import cxc.jex.postprocessing.PostProcessor;
 import cxc.jex.tracer.Tracer;
-import io.netty.buffer.ByteBuf;
-import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelHandlerContext;
-import io.netty.handler.codec.http.DefaultFullHttpResponse;
-import io.netty.handler.codec.http.FullHttpResponse;
-import io.netty.handler.codec.http.HttpHeaders;
 import io.netty.handler.codec.http.HttpObject;
 import io.netty.handler.codec.http.HttpRequest;
 import io.netty.handler.codec.http.HttpResponse;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import io.netty.handler.codec.http.HttpVersion;
-import io.netty.handler.codec.http.HttpHeaders.Names;
-import io.netty.handler.codec.http.HttpHeaders.Values;
-import ru.otr.nzx.NZXConstants;
 import ru.otr.nzx.config.http.location.LocationConfig;
+import ru.otr.nzx.util.NZXUtil;
 
 public class FailureLocation extends Location {
 
@@ -42,18 +35,7 @@ public class FailureLocation extends Location {
         if (httpObject instanceof HttpRequest) {
             httpVersion = ((HttpRequest) httpObject).getProtocolVersion();
         }
-        return makeFailureResponse(responseStatusCode, httpVersion);
+        return NZXUtil.makeFailureResponse(responseStatusCode, httpVersion);
     }
 
-    public static FullHttpResponse makeFailureResponse(int responseStatusCode, HttpVersion httpVersion) {
-        String content = "<html><head><title>" + HttpResponseStatus.valueOf(responseStatusCode).toString()
-                + "</title></head><body bgcolor=\"white\"><center><h1>" + HttpResponseStatus.valueOf(responseStatusCode).toString()
-                + "</h1></center><hr><center>NZX " + NZXConstants.NZX_VERSION + "</center></body></html>";
-        ByteBuf buffer = Unpooled.wrappedBuffer(content.getBytes());
-        FullHttpResponse response = new DefaultFullHttpResponse(httpVersion, HttpResponseStatus.valueOf(responseStatusCode), buffer);
-        HttpHeaders.setContentLength(response, buffer.readableBytes());
-        HttpHeaders.setHeader(response, HttpHeaders.Names.CONTENT_TYPE, "text/html; charset=UTF-8");
-        HttpHeaders.setHeader(response, Names.CONNECTION, Values.CLOSE);
-        return response;
-    }
 }
