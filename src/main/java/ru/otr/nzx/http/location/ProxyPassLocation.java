@@ -38,13 +38,13 @@ public class ProxyPassLocation extends Location {
     @Override
     public HttpResponse clientToProxyRequest(HttpObject httpObject) {
         HttpResponse response = null;
-        tracer.info("Client.To.Proxy.Request", "PASS " + passURI.toString());
+        tracer.info("Client.Request", "PASS " + passURI.toString());
         if (httpObject instanceof FullHttpRequest) {
             FullHttpRequest request = (FullHttpRequest) httpObject;
             request.setUri(passURI.toString());
             ProxyPassLocationConfig cfg = (ProxyPassLocationConfig) config;
             if (cfg.proxy_set_headers.size() > 0) {
-                tracer.debug("Server.Request.SetHeaders", "set headers=" + cfg.proxy_set_headers);
+                tracer.debug("Proxy.Request.SetHeaders", "headers=" + cfg.proxy_set_headers);
                 for (Map.Entry<String, String> item : cfg.proxy_set_headers.entrySet()) {
                     HttpHeaders.setHeader(request, item.getKey(), item.getValue());
                 }
@@ -55,13 +55,13 @@ public class ProxyPassLocation extends Location {
             if (HTTPS_SCHEME.matcher(passURI.toString()).matches()) {
                 try {
                     response = new MITM().sendRequest(request);
-                    tracer.info("MITM.To.Proxy.Response", NZXUtil.responseToShortLine(response));
+                    tracer.info("Server.Response", "MITM " + NZXUtil.responseToShortLine(response));
                     if (config.post_processing_enable) {
                         putToPostProcessor(response);
                     }
                 } catch (Exception e) {
                     response = FailureLocation.makeFailureResponse(500, request.getProtocolVersion());
-                    tracer.error("MITM.To.Proxy.Response/CONNECTION_ERROR", "", e);
+                    tracer.error("Server.Connection.Failed/CONNECTION_ERROR", "MITM", e);
                 }
 
             }
@@ -72,7 +72,7 @@ public class ProxyPassLocation extends Location {
 
     @Override
     public HttpResponse proxyToServerRequest(HttpObject httpObject) {
-        tracer.debug("Proxy.To.Server.Request", "");
+        tracer.debug("Proxy.Request", "");
         return null;
     }
 
@@ -80,7 +80,7 @@ public class ProxyPassLocation extends Location {
     public HttpObject serverToProxyResponse(HttpObject httpObject) {
         if (httpObject instanceof HttpResponse) {
             HttpResponse response = (HttpResponse) httpObject;
-            tracer.info("Server.To.Proxy.Response", NZXUtil.responseToShortLine(response));
+            tracer.info("Server.Response", NZXUtil.responseToShortLine(response));
 
             if (config.post_processing_enable) {
                 putToPostProcessor(response);
@@ -91,22 +91,20 @@ public class ProxyPassLocation extends Location {
 
     @Override
     public HttpObject proxyToClientResponse(HttpObject httpObject) {
-        if (tracer.isTraceEnabled()) {
-            tracer.trace("Proxy.Response", httpObject.toString());
-        }
+        tracer.trace("Proxy.Response", httpObject.toString());
         return httpObject;
     }
 
     @Override
     public void serverToProxyResponseTimedOut() {
         super.serverToProxyResponseTimedOut();
-        tracer.warn("Server.TimedOut/CONNECTION_ERROR", "");
+        tracer.warn("Server.Response.TimedOut/CONNECTION_ERROR", "");
     }
 
     @Override
     public void proxyToServerConnectionFailed() {
         super.proxyToServerConnectionFailed();
-        tracer.warn("Server.ConnectionFailed/CONNECTION_ERROR", "");
+        tracer.warn("Server.Connection.Failed/CONNECTION_ERROR", "");
     }
 
     protected static URI makePassURI(URI uri, ProxyPassLocationConfig cfg) throws URISyntaxException {
