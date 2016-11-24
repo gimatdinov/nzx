@@ -47,7 +47,7 @@ public abstract class PostProcessor extends Server {
 
     @Override
     public void start() {
-        started.set(true);;
+        started.set(true);
         tracer.info("Starting", "count of workers " + workers.size());
         for (Worker item : workers) {
             executor.submit(item);
@@ -66,7 +66,7 @@ public abstract class PostProcessor extends Server {
 
     protected abstract Tank makeTank();
 
-    public Tank getTank(int contentLength) {
+    public Tank getEmptyTank() {
         Tank result = emptyTanks.poll();
         if (result == null) {
             int tanksCount = loadedTanks.size() + emptyTanks.size();

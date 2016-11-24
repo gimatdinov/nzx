@@ -23,9 +23,9 @@ public class Matching implements Action {
     @Override
     public void process(Tank t, Tracer tracer) {
         NZXTank tank = (NZXTank) t;
-        if (tank.type == ObjectType.RES && tank.getContentLength() <= maxContentLength) {
+        if (tank.type == ObjectType.RES && tank.contentLength > 0 && tank.contentLength <= maxContentLength) {
             try (ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
-                baos.write(tank.getData(), 0, tank.getContentLength());
+                baos.write(tank.data, 0, tank.contentLength);
                 String content = baos.toString();
                 if (content.matches(regex)) {
                     tracer.info("Matching." + marker + "/" + marker, NZXUtil.tankToShortLine(tank));

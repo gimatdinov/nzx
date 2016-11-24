@@ -17,31 +17,33 @@ public class Dumping implements Action {
     @Override
     public void process(Tank t, Tracer tracer) {
         NZXTank tank = (NZXTank) t;
-        String dump_content_store = tank.properties.get(LocationConfig.DUMP_CONTENT_STORE);
-        if (dump_content_store != null) {
-            StringBuilder path = new StringBuilder();
-            path.append(dump_content_store);
-            path.append(File.separator);
-            path.append(dayDateFormat.format(tank.requestDateTime));
-            File dir = new File(path.toString());
-            if (!dir.exists()) {
-                dir.mkdirs();
-            }
-            path.append(File.separator);
-            path.append(idDateFormat.format(tank.requestDateTime));
-            path.append("_");
-            path.append(tank.requestID);
-            path.append("_");
-            path.append(tank.requestURI.getPath().replaceAll("[^ \\w]", "_"));
-            path.append("_");
-            path.append(tank.type);
+        if (tank.contentLength > 0) {
+            String dump_content_store = tank.properties.get(LocationConfig.DUMP_CONTENT_STORE);
+            if (dump_content_store != null) {
+                StringBuilder path = new StringBuilder();
+                path.append(dump_content_store);
+                path.append(File.separator);
+                path.append(dayDateFormat.format(tank.requestDateTime));
+                File dir = new File(path.toString());
+                if (!dir.exists()) {
+                    dir.mkdirs();
+                }
+                path.append(File.separator);
+                path.append(idDateFormat.format(tank.requestDateTime));
+                path.append("_");
+                path.append(tank.requestID);
+                path.append("_");
+                path.append(tank.requestURI.getPath().replaceAll("[^ \\w]", "_"));
+                path.append("_");
+                path.append(tank.type);
 
-            tracer.debug("Dumping", "file=[" + path + "] size=" + tank.getContentLength());
+                tracer.debug("Dumping", "file=[" + path + "] size=" + tank.contentLength);
 
-            try (FileOutputStream fos = new FileOutputStream(path.toString())) {
-                fos.write(tank.getData(), 0, tank.getContentLength());
-            } catch (Exception e) {
-                tracer.error("Dumping.Error/DUMPING_ERROR", "file=[" + path + "]", e);
+                try (FileOutputStream fos = new FileOutputStream(path.toString())) {
+                    fos.write(tank.data, 0, tank.contentLength);
+                } catch (Exception e) {
+                    tracer.error("Dumping.Error/DUMPING_ERROR", "file=[" + path + "]", e);
+                }
             }
         }
     }

@@ -7,12 +7,11 @@ import org.littleshoot.proxy.HttpFiltersAdapter;
 
 import cxc.jex.postprocessing.PostProcessor;
 import cxc.jex.tracer.Tracer;
-import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
-import io.netty.handler.codec.http.FullHttpRequest;
-import io.netty.handler.codec.http.FullHttpResponse;
+import io.netty.handler.codec.http.FullHttpMessage;
 import io.netty.handler.codec.http.HttpObject;
 import io.netty.handler.codec.http.HttpRequest;
+import io.netty.handler.codec.http.HttpResponse;
 import ru.otr.nzx.config.http.location.LocationConfig;
 import ru.otr.nzx.http.HTTPServer.ObjectType;
 import ru.otr.nzx.postprocessing.NZXTank;
@@ -40,37 +39,32 @@ public abstract class Location extends HttpFiltersAdapter {
     }
 
     protected void putToPostProcessor(HttpObject httpObject) {
-        ByteBuf content = null;
-        ObjectType type = null;
-        int responseStatusCode = 0;
-        boolean success = false;
-        if (httpObject instanceof FullHttpRequest) {
-            content = ((FullHttpRequest) httpObject).content();
-            type = ObjectType.REQ;
-            responseStatusCode = 0;
-            success = ((FullHttpRequest) httpObject).getDecoderResult().isSuccess();
+        NZXTank tank = (NZXTank) postProcessor.getEmptyTank();
+        tank.requestID = requestID;
+        tank.requestDateTime = requestDateTime;
+        tank.requestURI = requestURI;
+        tank.success = httpObject.getDecoderResult().isSuccess();
+
+        if (httpObject instanceof HttpRequest) {
+            tank.type = ObjectType.REQ;
+            tank.responseStatusCode = 0;
+
         }
-        if (httpObject instanceof FullHttpResponse) {
-            content = ((FullHttpResponse) httpObject).content();
-            type = ObjectType.RES;
-            responseStatusCode = ((FullHttpResponse) httpObject).getStatus().code();
-            success = ((FullHttpResponse) httpObject).getDecoderResult().isSuccess();
+        if (httpObject instanceof HttpResponse) {
+            tank.type = ObjectType.RES;
+            tank.responseStatusCode = ((HttpResponse) httpObject).getStatus().code();
         }
 
-        if (content != null && content.isReadable()) {
-            int rix = content.readerIndex();
-            NZXTank tank = (NZXTank) postProcessor.getTank(content.readableBytes());
-            tank.type = type;
-            tank.requestID = requestID;
-            tank.requestDateTime = requestDateTime;
-            tank.requestURI = requestURI;
-            tank.responseStatusCode = responseStatusCode;
-            tank.success = success;
-            tank.contentLength = content.readableBytes();
+        tank.contentLength = 0;
+        if (httpObject instanceof FullHttpMessage) {
+            FullHttpMessage msg = (FullHttpMessage) httpObject;
+            int rix = msg.content().readerIndex();
+            tank.contentLength = msg.content().readableBytes();
             tank.properties.put(LocationConfig.DUMP_CONTENT_STORE, config.dump_content_store);
-            content.readBytes(tank.getData(), 0, Math.min(content.readableBytes(), tank.getData().length));
+            msg.content().readBytes(tank.data, 0, Math.min(msg.content().readableBytes(), tank.data.length));
             postProcessor.put(tank);
-            content.setIndex(rix, content.writerIndex());
+            msg.content().setIndex(rix, msg.content().writerIndex());
         }
+
     }
 }

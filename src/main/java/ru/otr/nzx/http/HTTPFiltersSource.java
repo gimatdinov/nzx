@@ -46,7 +46,7 @@ public class HTTPFiltersSource extends HttpFiltersSourceAdapter {
 		tracer.info("Request", "ID=" + requestID + " " + NZXUtil.requestToLongLine(request, ctx, tracer.isDebugEnabled()));
 		try {
 			URI requestURI = new URI(request.getUri()).normalize();
-			if (HttpMethod.GET.equals(request.getMethod()) || HttpMethod.POST.equals(request.getMethod())) {
+			if (!HttpMethod.CONNECT.equals(request.getMethod())) {
 				LocationConfig location = config.locate(requestURI.getPath());
 				if (location != null && location.enable) {
 					if (location instanceof ProxyPassLocationConfig) {

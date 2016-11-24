@@ -9,9 +9,7 @@ import java.util.regex.Pattern;
 import cxc.jex.postprocessing.PostProcessor;
 import cxc.jex.tracer.Tracer;
 import io.netty.channel.ChannelHandlerContext;
-import io.netty.handler.codec.http.FullHttpRequest;
 import io.netty.handler.codec.http.HttpHeaders;
-import io.netty.handler.codec.http.HttpMethod;
 import io.netty.handler.codec.http.HttpObject;
 import io.netty.handler.codec.http.HttpRequest;
 import io.netty.handler.codec.http.HttpResponse;
@@ -39,8 +37,8 @@ public class ProxyPassLocation extends Location {
     public HttpResponse clientToProxyRequest(HttpObject httpObject) {
         HttpResponse response = null;
         tracer.info("Client.Request", "PASS " + passURI.toString());
-        if (httpObject instanceof FullHttpRequest) {
-            FullHttpRequest request = (FullHttpRequest) httpObject;
+        if (httpObject instanceof HttpRequest) {
+            HttpRequest request = (HttpRequest) httpObject;
             request.setUri(passURI.toString());
             ProxyPassLocationConfig cfg = (ProxyPassLocationConfig) config;
             if (cfg.proxy_set_headers.size() > 0) {
@@ -49,7 +47,7 @@ public class ProxyPassLocation extends Location {
                     HttpHeaders.setHeader(request, item.getKey(), item.getValue());
                 }
             }
-            if (config.post_processing_enable && request.getMethod().equals(HttpMethod.POST)) {
+            if (config.post_processing_enable) {
                 putToPostProcessor(httpObject);
             }
             if (HTTPS_SCHEME.matcher(passURI.toString()).matches()) {

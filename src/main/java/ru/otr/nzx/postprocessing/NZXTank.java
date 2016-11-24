@@ -15,7 +15,7 @@ public class NZXTank implements Tank {
     public URI requestURI;
     public int responseStatusCode;
     public boolean success;
-    final byte[] data;
+    public final byte[] data;
     public int contentLength;
 
     public final Map<String, String> properties = new HashMap<>();
@@ -26,16 +26,6 @@ public class NZXTank implements Tank {
 
     public boolean isContentComplete() {
         return (data.length >= contentLength);
-    }
-
-    @Override
-    public byte[] getData() {
-        return data;
-    }
-
-    @Override
-    public int getContentLength() {
-        return contentLength;
     }
 
 }
