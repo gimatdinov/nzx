@@ -8,10 +8,12 @@ HTTP proxy, based on LittleProxy (https://github.com/adamfisk/LittleProxy), conf
 * Extensible postprocessing for request and response 
  * Dumping
  * Regex matching with e-mail notification
+ * Fail HTTP response processing with e-mail notification
+* MITM for HTTP-to-HTTPS (unusual rare need) 
 * Built-in FTP server (to view dumps) 
 
 ##Build
 ``mvn package``
 
 ## Run
-``java -Dlogging.config=src/test/config/logback.xml -Dnzx_log=log -jar target/nzx-0.9.jar -n Test -c src/test/config/nzx_TEST.conf``
+``java -jar target/nzx-0.10.jar -c src/test/config/nzx-test.conf``
