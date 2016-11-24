@@ -14,11 +14,11 @@ import io.netty.handler.codec.http.HttpRequest;
 import io.netty.handler.codec.http.HttpResponse;
 import ru.otr.nzx.config.http.location.LocationConfig;
 import ru.otr.nzx.http.HTTPServer.ObjectType;
-import ru.otr.nzx.postprocessing.NZXTank;
+import ru.otr.nzx.postprocessing.Tank;
 
 public abstract class Location extends HttpFiltersAdapter {
 
-    protected final PostProcessor postProcessor;
+    protected final PostProcessor<Tank> postProcessor;
     protected final Tracer tracer;
 
     protected final Date requestDateTime;
@@ -28,7 +28,7 @@ public abstract class Location extends HttpFiltersAdapter {
     protected final LocationConfig config;
 
     public Location(HttpRequest originalRequest, ChannelHandlerContext ctx, Date requestDateTime, String requestID, URI requestURI, LocationConfig config,
-            PostProcessor postProcessor, Tracer tracer) {
+            PostProcessor<Tank> postProcessor, Tracer tracer) {
         super(originalRequest, ctx);
         this.requestDateTime = requestDateTime;
         this.requestID = requestID;
@@ -39,7 +39,7 @@ public abstract class Location extends HttpFiltersAdapter {
     }
 
     protected void putToPostProcessor(HttpObject httpObject) {
-        NZXTank tank = (NZXTank) postProcessor.getEmptyTank();
+        Tank tank = postProcessor.getEmptyTank();
         tank.requestID = requestID;
         tank.requestDateTime = requestDateTime;
         tank.requestURI = requestURI;

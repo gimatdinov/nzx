@@ -8,12 +8,11 @@ import com.google.common.util.concurrent.ThreadFactoryBuilder;
 
 import cxc.jex.postprocessing.Action;
 import cxc.jex.postprocessing.PostProcessor;
-import cxc.jex.postprocessing.Tank;
 import cxc.jex.tracer.Tracer;
 import ru.otr.nzx.config.postprocessing.ActionConfig;
 import ru.otr.nzx.config.postprocessing.PostProcessorConfig;
 
-public class NZXPostProcessor extends PostProcessor {
+public class NZXPostProcessor extends PostProcessor<Tank> {
 
     private final PostProcessorConfig config;
     private final int bufferSize;
@@ -26,12 +25,13 @@ public class NZXPostProcessor extends PostProcessor {
 
     @Override
     protected Tank makeTank() {
-        return new NZXTank(bufferSize);
+        return new Tank(bufferSize);
     }
 
-    private static List<Action> loadActions(List<ActionConfig> configs) {
+    @SuppressWarnings("unchecked")
+    private static List<Action<Tank>> loadActions(List<ActionConfig> configs) {
         try {
-            List<Action> result = new ArrayList<>();
+            List<Action<Tank>> result = new ArrayList<>();
             result.add(new Dumping());
             for (ActionConfig cfg : configs) {
                 Class<?> actionClass = Class.forName(cfg.clazz);
@@ -40,7 +40,7 @@ public class NZXPostProcessor extends PostProcessor {
                     paramTypes[i] = String.class;
                 }
                 Constructor<?> actionConstructor = actionClass.getConstructor(paramTypes);
-                result.add((Action) actionConstructor.newInstance((Object[]) cfg.parameters));
+                result.add((Action<Tank>) actionConstructor.newInstance((Object[]) cfg.parameters));
             }
             return result;
         } catch (Exception e) {
@@ -55,7 +55,7 @@ public class NZXPostProcessor extends PostProcessor {
     }
 
     public boolean isDumpingEnable() {
-        for (Action action : actions) {
+        for (Action<Tank> action : actions) {
             if (action instanceof Dumping) {
                 return true;
             }

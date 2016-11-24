@@ -13,8 +13,10 @@ import io.netty.handler.codec.http.HttpHeaders;
 import io.netty.handler.codec.http.HttpObject;
 import io.netty.handler.codec.http.HttpRequest;
 import io.netty.handler.codec.http.HttpResponse;
+import io.netty.handler.codec.http.HttpHeaders.Names;
 import ru.otr.nzx.config.http.location.ProxyPassLocationConfig;
 import ru.otr.nzx.https.MITM;
+import ru.otr.nzx.postprocessing.Tank;
 import ru.otr.nzx.util.NZXUtil;
 
 public class ProxyPassLocation extends Location {
@@ -23,7 +25,7 @@ public class ProxyPassLocation extends Location {
     private final URI passURI;
 
     public ProxyPassLocation(HttpRequest originalRequest, ChannelHandlerContext ctx, Date requestDateTime, String requestID, URI requestURI,
-            ProxyPassLocationConfig location, PostProcessor postProcessor, Tracer tracer) {
+            ProxyPassLocationConfig location, PostProcessor<Tank> postProcessor, Tracer tracer) {
         super(originalRequest, ctx, requestDateTime, requestID, requestURI, location, postProcessor, tracer);
 
         try {
@@ -41,6 +43,7 @@ public class ProxyPassLocation extends Location {
             HttpRequest request = (HttpRequest) httpObject;
             request.setUri(passURI.toString());
             ProxyPassLocationConfig cfg = (ProxyPassLocationConfig) config;
+            HttpHeaders.setHeader(request, Names.HOST, NZXUtil.extractHeaderHost(passURI));
             if (cfg.proxy_set_headers.size() > 0) {
                 tracer.debug("Proxy.Request.SetHeaders", "headers=" + cfg.proxy_set_headers);
                 for (Map.Entry<String, String> item : cfg.proxy_set_headers.entrySet()) {

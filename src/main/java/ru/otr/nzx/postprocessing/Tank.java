@@ -5,10 +5,9 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
-import cxc.jex.postprocessing.Tank;
 import ru.otr.nzx.http.HTTPServer.ObjectType;
 
-public class NZXTank implements Tank {
+public class Tank {
     public ObjectType type;
     public Date requestDateTime;
     public String requestID;
@@ -20,7 +19,7 @@ public class NZXTank implements Tank {
 
     public final Map<String, String> properties = new HashMap<>();
 
-    NZXTank(int capacity) {
+    Tank(int capacity) {
         data = new byte[capacity];
     }
 

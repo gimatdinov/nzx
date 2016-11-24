@@ -15,32 +15,32 @@ import java.util.concurrent.locks.ReentrantLock;
 import cxc.jex.server.Server;
 import cxc.jex.tracer.Tracer;
 
-public abstract class PostProcessor extends Server {
+public abstract class PostProcessor<T> extends Server {
     private Lock lock = new ReentrantLock();
     private Condition comingEmptyTanks = lock.newCondition();
 
     private ExecutorService executor;
 
     final AtomicBoolean started = new AtomicBoolean(false);
-    final ConcurrentLinkedQueue<Tank> loadedTanks = new ConcurrentLinkedQueue<>();
-    final ConcurrentLinkedQueue<Tank> emptyTanks = new ConcurrentLinkedQueue<>();
-    protected final List<Action> actions = new ArrayList<>();
+    final ConcurrentLinkedQueue<T> loadedTanks = new ConcurrentLinkedQueue<>();
+    final ConcurrentLinkedQueue<T> emptyTanks = new ConcurrentLinkedQueue<>();
+    protected final List<Action<T>> actions = new ArrayList<>();
 
     private int maxTanksCount;
-    private List<Worker> workers = new ArrayList<>();
+    private List<Worker<T>> workers = new ArrayList<>();
     private Random random = new Random();
 
     public PostProcessor(String name, Tracer tracer) {
         super(tracer.getSubtracer(name));
     }
 
-    public void init(int workers, int maxTanksCount, List<Action> actions, ThreadFactory threadFactory) {
+    public void init(int workers, int maxTanksCount, List<Action<T>> actions, ThreadFactory threadFactory) {
         this.maxTanksCount = maxTanksCount;
         executor = Executors.newFixedThreadPool(workers, threadFactory);
         for (int i = 0; i < workers; i++) {
-            this.workers.add(new Worker(this));
+            this.workers.add(new Worker<T>(this));
         }
-        for (Action item : actions) {
+        for (Action<T> item : actions) {
             this.actions.add(item);
         }
     }
@@ -49,7 +49,7 @@ public abstract class PostProcessor extends Server {
     public void start() {
         started.set(true);
         tracer.info("Starting", "count of workers " + workers.size());
-        for (Worker item : workers) {
+        for (Worker<T> item : workers) {
             executor.submit(item);
         }
     }
@@ -57,17 +57,17 @@ public abstract class PostProcessor extends Server {
     @Override
     public void stop() {
         started.set(false);
-        for (Worker item : workers) {
+        for (Worker<T> item : workers) {
             item.signal();
         }
         executor.shutdown();
         tracer.info("Stoped", "");
     }
 
-    protected abstract Tank makeTank();
+    protected abstract T makeTank();
 
-    public Tank getEmptyTank() {
-        Tank result = emptyTanks.poll();
+    public T getEmptyTank() {
+        T result = emptyTanks.poll();
         if (result == null) {
             int tanksCount = loadedTanks.size() + emptyTanks.size();
             if (tanksCount < maxTanksCount || maxTanksCount == 0) {
@@ -95,13 +95,13 @@ public abstract class PostProcessor extends Server {
         return result;
     }
 
-    public void put(Tank loadedTank) {
+    public void put(T loadedTank) {
         if (!started.get()) {
             tracer.error("Error", "Not started!");
             return;
         }
         int wix = (int) Math.round((workers.size() - 1) * random.nextDouble());
-        Worker worker = workers.get(wix);
+        Worker<T> worker = workers.get(wix);
         loadedTanks.add(loadedTank);
         worker.signal();
 

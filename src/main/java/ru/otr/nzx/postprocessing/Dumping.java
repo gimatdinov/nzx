@@ -6,17 +6,15 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 
 import cxc.jex.postprocessing.Action;
-import cxc.jex.postprocessing.Tank;
 import cxc.jex.tracer.Tracer;
 import ru.otr.nzx.config.http.location.LocationConfig;
 
-public class Dumping implements Action {
+public class Dumping implements Action<Tank> {
     private static final DateFormat idDateFormat = new SimpleDateFormat("yyyy-MM-dd_HHmmss_SSS");
     private static final DateFormat dayDateFormat = new SimpleDateFormat("yyyy-MM-dd");
 
     @Override
-    public void process(Tank t, Tracer tracer) {
-        NZXTank tank = (NZXTank) t;
+    public void process(Tank tank, Tracer tracer) {
         if (tank.contentLength > 0) {
             String dump_content_store = tank.properties.get(LocationConfig.DUMP_CONTENT_STORE);
             if (dump_content_store != null) {

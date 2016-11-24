@@ -16,7 +16,6 @@ import org.apache.http.client.methods.HttpTrace;
 import org.apache.http.entity.ByteArrayEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
-import org.apache.http.protocol.HTTP;
 import org.apache.http.util.EntityUtils;
 
 import io.netty.buffer.ByteBuf;
@@ -74,7 +73,7 @@ public class MITM {
                 throw new Exception("MethodNotAllowed");
             }
             for (Entry<String, String> item : request.headers().entries()) {
-                if (!item.getKey().equals(HTTP.CONTENT_LEN) && !item.getKey().equals(HTTP.TARGET_HOST)) {
+                if (!item.getKey().equals(Names.CONTENT_LENGTH)) {
                     req.setHeader(item.getKey(), item.getValue());
                 }
             }
