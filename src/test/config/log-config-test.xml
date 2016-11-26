@@ -12,7 +12,7 @@
 	</appender>
 	
     <appender name="EMAIL" class="cxc.jex.tracer.logback.EmailAppender">
-        <markers>NOTIFY_ADMIN, CONNECTION_ERROR, DUMPING_ERROR, SOAP_FAULT, HTTP_FAULT</markers>
+        <markers>NOTIFY_ADMIN, PROXY_PASS_ERROR, SOAP_FAULT, HTTP_FAULT</markers>
         <smtpHost>localhost</smtpHost>
         <smtpPort>2525</smtpPort>
         <username>USERNAME</username>

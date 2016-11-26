@@ -6,12 +6,17 @@ import java.util.Map;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import ru.otr.nzx.config.http.location.FileLocationConfig;
 import ru.otr.nzx.config.http.location.LocationConfig;
 import ru.otr.nzx.config.http.location.ProxyPassLocationConfig;
 import ru.otr.nzx.config.postprocessing.PostProcessorConfig;
 
 public class HTTPServerConfig {
+    private final static Logger log = LoggerFactory.getLogger(HTTPServerConfig.class);
+
     public final static String ENABLE = "enable";
     public final static String NAME = "name";
     public final static String LISTEN = "listen";
@@ -62,6 +67,10 @@ public class HTTPServerConfig {
             String path = LocationConfig.cleanPath(loc.getString(LocationConfig.PATH));
             if (loc.has(ProxyPassLocationConfig.PROXY_PASS)) {
                 locations.put(path, new ProxyPassLocationConfig(path, loc));
+            } else if (loc.has(FileLocationConfig.FILE)) {
+                locations.put(path, new FileLocationConfig(path, loc));
+            } else {
+                locations.put(path, new LocationConfig(path, loc));
             }
         }
         if (src.has(POST_PROCESSING)) {
@@ -107,22 +116,28 @@ public class HTTPServerConfig {
     }
 
     public LocationConfig locate(String path) {
-        LocationConfig result = null;
         path = (path != null) ? path : "/";
         String part[] = LocationConfig.cleanPath(path).split("/");
+        if (part.length == 0) {
+            return locations.get("/");
+        }
+        LocationConfig loc = null;
         for (int i = 0; i < part.length; i++) {
             StringBuilder used = new StringBuilder();
             for (int j = 0; j < part.length - i; j++) {
                 used.append("/");
                 used.append(part[j]);
             }
-            result = locations.get(LocationConfig.cleanPath(used.toString()));
-            // System.out.println(cleanPath(used.toString()));
-            if (result != null) {
-                return result;
+            String cursor = LocationConfig.cleanPath(used.toString());
+            log.debug(path + " > " + cursor);
+            loc = locations.get(cursor);
+            if (loc != null) {
+                log.debug(path + " = " + loc.path);
+                return loc;
             }
         }
-        return result;
+        log.debug(path + " not found");
+        return null;
     }
 
 }

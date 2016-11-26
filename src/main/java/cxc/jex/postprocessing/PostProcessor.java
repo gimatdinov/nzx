@@ -97,7 +97,7 @@ public abstract class PostProcessor<T> extends Server {
 
     public void put(T loadedTank) {
         if (!started.get()) {
-            tracer.error("Error", "Not started!");
+            tracer.error("Error/NOTIFY_ADMIN", "Not started!");
             return;
         }
         int wix = (int) Math.round((workers.size() - 1) * random.nextDouble());

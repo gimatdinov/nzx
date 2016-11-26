@@ -40,7 +40,7 @@ public class Dumping implements Action<Tank> {
                 try (FileOutputStream fos = new FileOutputStream(path.toString())) {
                     fos.write(tank.data, 0, tank.contentLength);
                 } catch (Exception e) {
-                    tracer.error("Dumping.Error/DUMPING_ERROR", "file=[" + path + "]", e);
+                    tracer.error("Dumping.Error/NOTIFY_ADMIN", "file=[" + path + "]", e);
                 }
             }
         }

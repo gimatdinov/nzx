@@ -48,14 +48,18 @@ public class HTTPFiltersSource extends HttpFiltersSourceAdapter {
         try {
             URI requestURI = new URI(request.getUri()).normalize();
             if (!HttpMethod.CONNECT.equals(request.getMethod())) {
-                LocationConfig location = config.locate(requestURI.getPath());
-                if (location != null && location.enable) {
-                    if (location instanceof ProxyPassLocationConfig) {
-                        return new ProxyPassLocation(request, ctx, requestDateTime, requestID, requestURI, (ProxyPassLocationConfig) location, postProcessor,
-                                tracer.getSubtracer(location.path));
+                LocationConfig locCfg = config.locate(requestURI.getPath());
+                if (locCfg != null && locCfg.enable) {
+                    if (locCfg instanceof ProxyPassLocationConfig) {
+                        return new ProxyPassLocation(request, ctx, requestDateTime, requestID, requestURI, (ProxyPassLocationConfig) locCfg, postProcessor,
+                                tracer.getSubtracer(locCfg.path));
                     }
-                    return new FailureLocation(request, ctx, requestDateTime, requestID, requestURI, null, postProcessor, tracer.getSubtracer(location.path),
-                            500);
+                    if (locCfg instanceof FileLocationConfig) {
+                        return new FileLocation(request, ctx, requestDateTime, requestID, requestURI, (FileLocationConfig) locCfg, postProcessor,
+                                tracer.getSubtracer(locCfg.path));
+                    }
+                    return new Location<LocationConfig>(request, ctx, requestDateTime, requestID, requestURI, locCfg, postProcessor,
+                            tracer.getSubtracer(locCfg.path));
                 } else {
                     return new FailureLocation(request, ctx, requestDateTime, requestID, requestURI, null, postProcessor, tracer.getSubtracer("#NotFound"),
                             404);

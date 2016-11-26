@@ -30,6 +30,11 @@ import ru.otr.nzx.config.NZXConfig;
 public class NZXApplication implements CommandLineRunner {
     private static Logger log = LoggerFactory.getLogger(NZXApplication.class);
 
+    public final static String OPTION_NAME = "name";
+    public final static String OPTION_CONFIG = "config";
+    public final static String DEFAULT_CONFIG_PATHNAME = "config" + File.separator + "nzx.conf";
+    public final static String PROPERTY_NZX_LOG = "nzx_log";
+
     private NZX nzx;
 
     @PreDestroy
@@ -42,15 +47,17 @@ public class NZXApplication implements CommandLineRunner {
     @Override
     public void run(String... args) {
         Options options = new Options();
-        Option configOption = Option.builder("c").longOpt("config").required(false).numberOfArgs(1).desc("Path to configuration file").build();
+        Option nameOption = Option.builder("n").longOpt(OPTION_NAME).required(false).numberOfArgs(1).desc("Server name").build();
+        Option configOption = Option.builder("c").longOpt(OPTION_CONFIG).required(false).numberOfArgs(1).desc("Path to configuration file").build();
+        options.addOption(nameOption);
         options.addOption(configOption);
         HelpFormatter formatter = new HelpFormatter();
         CommandLineParser parser = new DefaultParser();
         try {
-            File configFile = new File("config" + File.separator + "nzx.conf").getAbsoluteFile();
+            File configFile = new File(DEFAULT_CONFIG_PATHNAME).getAbsoluteFile();
             CommandLine cmdLine = parser.parse(options, args);
-            if (cmdLine.getOptionValue("config") != null) {
-                configFile = new File(cmdLine.getOptionValue("config")).getAbsoluteFile();
+            if (cmdLine.getOptionValue(OPTION_CONFIG) != null) {
+                configFile = new File(cmdLine.getOptionValue(OPTION_CONFIG)).getAbsoluteFile();
             }
             if (!configFile.exists()) {
                 log.error("Config file not found: " + configFile.getPath());
@@ -60,6 +67,9 @@ public class NZXApplication implements CommandLineRunner {
             log.info("Config.File: " + configFile);
             NZXConfig config = new NZXConfig(configFile);
             String serverName = (config.name != null) ? config.name : InetAddress.getLocalHost().getHostName();
+            if (cmdLine.getOptionValue(OPTION_NAME) != null) {
+                serverName = cmdLine.getOptionValue(OPTION_NAME);
+            }
             if (config.log_config != null) {
                 loadLogConfig(configDir.getPath() + File.separator + config.log_config, config.log);
             }
@@ -81,7 +91,7 @@ public class NZXApplication implements CommandLineRunner {
             JoranConfigurator configurator = new JoranConfigurator();
             configurator.setContext(context);
             context.reset();
-            configurator.getContext().putProperty("nzx_log", logDir);
+            configurator.getContext().putProperty(PROPERTY_NZX_LOG, logDir);
             configurator.doConfigure(logConfigFile);
         } catch (JoranException je) {
             StatusPrinter.printInCaseOfErrorsOrWarnings(context);

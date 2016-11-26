@@ -28,14 +28,14 @@ public class NZX extends Server {
         tracer.info("Bootstrap", "");
         for (FTPServerConfig cfg : config.ftp.servers) {
             if (cfg.enable) {
-                FTPServer ftpServer = new FTPServer(cfg, tracer.getSubtracer("FTP"));
+                FTPServer ftpServer = new FTPServer(cfg, tracer);
                 ftpServer.bootstrap();
                 ftpServers.add(ftpServer);
             }
         }
         for (final HTTPServerConfig cfg : config.http.servers) {
             if (cfg.enable) {
-                HTTPServer httpServer = new HTTPServer(cfg, tracer.getSubtracer("HTTP"));
+                HTTPServer httpServer = new HTTPServer(cfg, tracer);
                 httpServer.bootstrap();
                 httpServers.add(httpServer);
             }

@@ -15,7 +15,7 @@ import ru.otr.nzx.config.http.location.LocationConfig;
 import ru.otr.nzx.postprocessing.Tank;
 import ru.otr.nzx.util.NZXUtil;
 
-public class FailureLocation extends Location {
+public class FailureLocation extends Location<LocationConfig> {
 
     private final int responseStatusCode;
 
@@ -28,9 +28,9 @@ public class FailureLocation extends Location {
     @Override
     public HttpResponse clientToProxyRequest(HttpObject httpObject) {
         if (responseStatusCode < 500) {
-            this.tracer.info(HttpResponseStatus.valueOf(responseStatusCode).toString(), requestURI.getPath());
+            tracer.info("HTTP." + HttpResponseStatus.valueOf(responseStatusCode).code(), requestURI.getPath());
         } else {
-            this.tracer.error(HttpResponseStatus.valueOf(responseStatusCode).toString(), "LocationConfig=" + config);
+            tracer.error("HTTP." + HttpResponseStatus.valueOf(responseStatusCode).code(), requestURI.getPath());
         }
         HttpVersion httpVersion = HttpVersion.HTTP_1_1;
         if (httpObject instanceof HttpRequest) {

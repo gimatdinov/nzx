@@ -19,17 +19,17 @@ import ru.otr.nzx.https.MITM;
 import ru.otr.nzx.postprocessing.Tank;
 import ru.otr.nzx.util.NZXUtil;
 
-public class ProxyPassLocation extends Location {
+public class ProxyPassLocation extends Location<ProxyPassLocationConfig> {
     private static final Pattern HTTPS_SCHEME = Pattern.compile("^https://.*", Pattern.CASE_INSENSITIVE);
 
     private final URI passURI;
 
     public ProxyPassLocation(HttpRequest originalRequest, ChannelHandlerContext ctx, Date requestDateTime, String requestID, URI requestURI,
-            ProxyPassLocationConfig location, PostProcessor<Tank> postProcessor, Tracer tracer) {
-        super(originalRequest, ctx, requestDateTime, requestID, requestURI, location, postProcessor, tracer);
+            ProxyPassLocationConfig config, PostProcessor<Tank> postProcessor, Tracer tracer) {
+        super(originalRequest, ctx, requestDateTime, requestID, requestURI, config, postProcessor, tracer);
 
         try {
-            this.passURI = makePassURI(requestURI, (ProxyPassLocationConfig) location);
+            this.passURI = makePassURI(requestURI, config);
         } catch (URISyntaxException e) {
             throw new RuntimeException(e);
         }
@@ -62,7 +62,7 @@ public class ProxyPassLocation extends Location {
                     }
                 } catch (Exception e) {
                     response = NZXUtil.makeFailureResponse(500, request.getProtocolVersion());
-                    tracer.error("Server.Connection.Failed/CONNECTION_ERROR", "MITM", e);
+                    tracer.error("Server.Connection.Failed/PROXY_PASS_ERROR", "MITM", e);
                 }
 
             }
@@ -99,13 +99,13 @@ public class ProxyPassLocation extends Location {
     @Override
     public void serverToProxyResponseTimedOut() {
         super.serverToProxyResponseTimedOut();
-        tracer.warn("Server.Response.TimedOut/CONNECTION_ERROR", "");
+        tracer.warn("Server.Response.TimedOut/PROXY_PASS_ERROR", "");
     }
 
     @Override
     public void proxyToServerConnectionFailed() {
         super.proxyToServerConnectionFailed();
-        tracer.warn("Server.Connection.Failed/CONNECTION_ERROR", "");
+        tracer.warn("Server.Connection.Failed/PROXY_PASS_ERROR", "");
     }
 
     protected static URI makePassURI(URI uri, ProxyPassLocationConfig cfg) throws URISyntaxException {

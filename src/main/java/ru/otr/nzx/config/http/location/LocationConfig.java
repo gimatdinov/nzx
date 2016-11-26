@@ -2,7 +2,7 @@ package ru.otr.nzx.config.http.location;
 
 import org.json.JSONObject;
 
-public abstract class LocationConfig {
+public class LocationConfig {
     public final static String ENABLE = "enable";
     public final static String PATH = "path";
     public final static String POST_PROCESSING_ENABLE = "post_processing_enable";

@@ -2,6 +2,7 @@ package ru.otr.nzx.https;
 
 import java.util.Map.Entry;
 
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.output.ByteArrayOutputStream;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpDelete;
@@ -19,6 +20,7 @@ import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
 
 import io.netty.buffer.ByteBuf;
+import io.netty.buffer.ByteBufOutputStream;
 import io.netty.buffer.Unpooled;
 import io.netty.handler.codec.http.DefaultFullHttpResponse;
 import io.netty.handler.codec.http.FullHttpRequest;
@@ -78,19 +80,20 @@ public class MITM {
                 }
             }
             res = httpclient.execute(req);
-            ByteBuf buffer = Unpooled.buffer(0);
+            FullHttpResponse response;
             if (res.getEntity() != null && res.getEntity().getContent() != null) {
-                try (ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
-                    baos.write(res.getEntity().getContent());
-                    buffer = Unpooled.wrappedBuffer(baos.toByteArray());
+                ByteBuf buffer = Unpooled.buffer();
+                try (ByteBufOutputStream bbos = new ByteBufOutputStream(buffer)) {
+                    IOUtils.copy(res.getEntity().getContent(), bbos);
                 } finally {
                 }
-            }
-            FullHttpResponse response = new DefaultFullHttpResponse(request.getProtocolVersion(),
-                    HttpResponseStatus.valueOf(res.getStatusLine().getStatusCode()), buffer);
-            HttpHeaders.setContentLength(response, buffer.readableBytes());
-            if (res.getEntity() != null && res.getEntity().getContentType() != null) {
-                HttpHeaders.setHeader(response, res.getEntity().getContentType().getName(), res.getEntity().getContentType().getValue());
+                response = new DefaultFullHttpResponse(request.getProtocolVersion(), HttpResponseStatus.valueOf(res.getStatusLine().getStatusCode()), buffer);
+                HttpHeaders.setContentLength(response, buffer.readableBytes());
+                if (res.getEntity().getContentType() != null) {
+                    HttpHeaders.setHeader(response, res.getEntity().getContentType().getName(), res.getEntity().getContentType().getValue());
+                }
+            } else {
+                response = new DefaultFullHttpResponse(request.getProtocolVersion(), HttpResponseStatus.valueOf(res.getStatusLine().getStatusCode()));
             }
             HttpHeaders.setHeader(response, Names.CONNECTION, Values.CLOSE);
             EntityUtils.consume(res.getEntity());
