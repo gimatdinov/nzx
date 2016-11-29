@@ -31,6 +31,7 @@ public class Matching implements Action<NZXTank> {
 
             } catch (Exception e) {
                 tracer.error("Matching." + marker + ".Error/NOTIFY_ADMIN", NZXUtil.tankToShortLine(tank), e);
+            } finally {
             }
         }
 

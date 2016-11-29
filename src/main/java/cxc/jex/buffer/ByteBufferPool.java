@@ -105,7 +105,7 @@ public class ByteBufferPool {
         lock.lock();
         try {
             cell.unhold();
-            returnedСell.signal();
+            returnedСell.signalAll();
         } finally {
             lock.unlock();
         }

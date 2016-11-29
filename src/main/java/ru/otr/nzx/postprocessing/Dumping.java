@@ -41,6 +41,7 @@ public class Dumping implements Action<NZXTank> {
                     tank.getBuffer().read(fos);
                 } catch (Exception e) {
                     tracer.error("Dumping.Error/NOTIFY_ADMIN", "file=[" + path + "]", e);
+                } finally {
                 }
             }
         }
