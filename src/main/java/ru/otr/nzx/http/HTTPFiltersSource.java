@@ -16,16 +16,16 @@ import io.netty.handler.codec.http.HttpRequest;
 import ru.otr.nzx.config.http.HTTPServerConfig;
 import ru.otr.nzx.config.http.location.*;
 import ru.otr.nzx.http.location.*;
-import ru.otr.nzx.postprocessing.Tank;
+import ru.otr.nzx.postprocessing.NZXTank;
 import ru.otr.nzx.util.NZXUtil;
 
 public class HTTPFiltersSource extends HttpFiltersSourceAdapter {
 
     private final HTTPServerConfig config;
-    private final PostProcessor<Tank> postProcessor;
+    private final PostProcessor<NZXTank> postProcessor;
     private final Tracer tracer;
 
-    public HTTPFiltersSource(HTTPServerConfig config, PostProcessor<Tank> postProcessor, Tracer tracer) {
+    public HTTPFiltersSource(HTTPServerConfig config, PostProcessor<NZXTank> postProcessor, Tracer tracer) {
         this.config = config;
         this.postProcessor = postProcessor;
         this.tracer = tracer;

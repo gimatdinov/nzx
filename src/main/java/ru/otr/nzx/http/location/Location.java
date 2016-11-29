@@ -21,11 +21,11 @@ import io.netty.handler.codec.http.HttpHeaders.Names;
 import io.netty.handler.codec.http.HttpHeaders.Values;
 import ru.otr.nzx.config.http.location.LocationConfig;
 import ru.otr.nzx.http.HTTPServer.ObjectType;
-import ru.otr.nzx.postprocessing.Tank;
+import ru.otr.nzx.postprocessing.NZXTank;
 
 public class Location<Config extends LocationConfig> extends HttpFiltersAdapter {
 
-    protected final PostProcessor<Tank> postProcessor;
+    protected final PostProcessor<NZXTank> postProcessor;
     protected final Tracer tracer;
 
     protected final Date requestDateTime;
@@ -35,7 +35,7 @@ public class Location<Config extends LocationConfig> extends HttpFiltersAdapter 
     protected final Config config;
 
     public Location(HttpRequest originalRequest, ChannelHandlerContext ctx, Date requestDateTime, String requestID, URI requestURI, Config config,
-            PostProcessor<Tank> postProcessor, Tracer tracer) {
+            PostProcessor<NZXTank> postProcessor, Tracer tracer) {
         super(originalRequest, ctx);
         this.requestDateTime = requestDateTime;
         this.requestID = requestID;
@@ -58,7 +58,7 @@ public class Location<Config extends LocationConfig> extends HttpFiltersAdapter 
     }
 
     protected void putToPostProcessor(HttpObject httpObject) {
-        Tank tank = postProcessor.getEmptyTank();
+        NZXTank tank = new NZXTank();
         tank.requestID = requestID;
         tank.requestDateTime = requestDateTime;
         tank.requestURI = requestURI;
@@ -74,16 +74,15 @@ public class Location<Config extends LocationConfig> extends HttpFiltersAdapter 
             tank.responseStatusCode = ((HttpResponse) httpObject).getStatus().code();
         }
 
-        tank.contentLength = 0;
         if (httpObject instanceof FullHttpMessage) {
             FullHttpMessage msg = (FullHttpMessage) httpObject;
-            int rix = msg.content().readerIndex();
-            tank.contentLength = msg.content().readableBytes();
-            tank.properties.put(LocationConfig.DUMP_CONTENT_STORE, config.dump_content_store);
-            msg.content().readBytes(tank.data, 0, Math.min(msg.content().readableBytes(), tank.data.length));
-            postProcessor.put(tank);
-            msg.content().setIndex(rix, msg.content().writerIndex());
+            postProcessor.attachBuffer(tank, msg.content().readableBytes());
+            tank.writeContent(msg.content());
+            if (config.dump_content_store != null) {
+                tank.properties.put(LocationConfig.DUMP_CONTENT_STORE, config.dump_content_store);
+            }
         }
+        postProcessor.put(tank);
 
     }
 }

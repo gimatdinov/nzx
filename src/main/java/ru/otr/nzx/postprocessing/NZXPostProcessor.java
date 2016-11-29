@@ -12,26 +12,19 @@ import cxc.jex.tracer.Tracer;
 import ru.otr.nzx.config.postprocessing.ActionConfig;
 import ru.otr.nzx.config.postprocessing.PostProcessorConfig;
 
-public class NZXPostProcessor extends PostProcessor<Tank> {
+public class NZXPostProcessor extends PostProcessor<NZXTank> {
 
     private final PostProcessorConfig config;
-    private final int bufferSize;
 
-    public NZXPostProcessor(String name, PostProcessorConfig config, int bufferSize, Tracer tracer) {
+    public NZXPostProcessor(String name, PostProcessorConfig config, Tracer tracer) {
         super(name, tracer);
         this.config = config;
-        this.bufferSize = bufferSize;
-    }
-
-    @Override
-    protected Tank makeTank() {
-        return new Tank(bufferSize);
     }
 
     @SuppressWarnings("unchecked")
-    private static List<Action<Tank>> loadActions(List<ActionConfig> configs) {
+    private static List<Action<NZXTank>> loadActions(List<ActionConfig> configs) {
         try {
-            List<Action<Tank>> result = new ArrayList<>();
+            List<Action<NZXTank>> result = new ArrayList<>();
             result.add(new Dumping());
             for (ActionConfig cfg : configs) {
                 Class<?> actionClass = Class.forName(cfg.clazz);
@@ -40,7 +33,7 @@ public class NZXPostProcessor extends PostProcessor<Tank> {
                     paramTypes[i] = String.class;
                 }
                 Constructor<?> actionConstructor = actionClass.getConstructor(paramTypes);
-                result.add((Action<Tank>) actionConstructor.newInstance((Object[]) cfg.parameters));
+                result.add((Action<NZXTank>) actionConstructor.newInstance((Object[]) cfg.parameters));
             }
             return result;
         } catch (Exception e) {
@@ -50,12 +43,12 @@ public class NZXPostProcessor extends PostProcessor<Tank> {
 
     @Override
     public void bootstrap() {
-        super.init(config.workers, config.max_count_of_tanks, loadActions(config.actions),
+        super.init(config.workers, config.buffer_pool_size, config.buffer_size_min, loadActions(config.actions),
                 new ThreadFactoryBuilder().setNameFormat("nzx-PostProcessor-Worker-%d").build());
     }
 
     public boolean isDumpingEnable() {
-        for (Action<Tank> action : actions) {
+        for (Action<NZXTank> action : actions) {
             if (action instanceof Dumping) {
                 return true;
             }

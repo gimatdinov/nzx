@@ -29,7 +29,8 @@
 		</encoder>
 	</appender>
 
-	<logger name="cxc.jex.tracer.logback.LogbackTracer" level="DEBUG"/>
+    <logger name="cxc.jex.buffer.ByteBufferPool" level="TRACE"/>
+	<logger name="&lt;&lt;Tracer&gt;&gt;" level="DEBUG"/>
 	<logger name="org.littleshoot.proxy.impl.DefaultHttpProxyServer" level="WARN"/>
 	<logger name="org.littleshoot.proxy.impl.ClientToProxyConnection" level="WARN"/>
 	<logger name="org.littleshoot.proxy.impl.ProxyToServerConnection" level="WARN"/>

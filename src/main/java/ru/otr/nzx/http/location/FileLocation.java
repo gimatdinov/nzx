@@ -26,13 +26,13 @@ import io.netty.handler.codec.http.HttpVersion;
 import io.netty.handler.codec.http.HttpHeaders.Names;
 import io.netty.handler.codec.http.HttpHeaders.Values;
 import ru.otr.nzx.config.http.location.FileLocationConfig;
-import ru.otr.nzx.postprocessing.Tank;
+import ru.otr.nzx.postprocessing.NZXTank;
 import ru.otr.nzx.util.NZXUtil;
 
 public class FileLocation extends Location<FileLocationConfig> {
 
     public FileLocation(HttpRequest originalRequest, ChannelHandlerContext ctx, Date requestDateTime, String requestID, URI requestURI,
-            FileLocationConfig config, PostProcessor<Tank> postProcessor, Tracer tracer) {
+            FileLocationConfig config, PostProcessor<NZXTank> postProcessor, Tracer tracer) {
         super(originalRequest, ctx, requestDateTime, requestID, requestURI, config, postProcessor, tracer);
     }
 

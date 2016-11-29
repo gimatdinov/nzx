@@ -5,7 +5,7 @@ import cxc.jex.tracer.Tracer;
 import ru.otr.nzx.http.HTTPServer.ObjectType;
 import ru.otr.nzx.util.NZXUtil;
 
-public class FailHttpResponseProcessing implements Action<Tank> {
+public class FailHttpResponseProcessing implements Action<NZXTank> {
 
     private final String marker;
     private final boolean httpSC400;
@@ -20,7 +20,7 @@ public class FailHttpResponseProcessing implements Action<Tank> {
     }
 
     @Override
-    public void process(Tank tank, Tracer tracer) {
+    public void process(NZXTank tank, Tracer tracer) {
         if (tank.type == ObjectType.RES) {
             boolean flag = false;
             if (httpSC400 && tank.responseStatusCode >= 400 && tank.responseStatusCode <= 499) {

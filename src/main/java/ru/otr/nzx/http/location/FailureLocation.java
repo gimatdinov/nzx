@@ -12,7 +12,7 @@ import io.netty.handler.codec.http.HttpResponse;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import io.netty.handler.codec.http.HttpVersion;
 import ru.otr.nzx.config.http.location.LocationConfig;
-import ru.otr.nzx.postprocessing.Tank;
+import ru.otr.nzx.postprocessing.NZXTank;
 import ru.otr.nzx.util.NZXUtil;
 
 public class FailureLocation extends Location<LocationConfig> {
@@ -20,7 +20,7 @@ public class FailureLocation extends Location<LocationConfig> {
     private final int responseStatusCode;
 
     public FailureLocation(HttpRequest originalRequest, ChannelHandlerContext ctx, Date requestDateTime, String requestID, URI requestURI,
-            LocationConfig config, PostProcessor<Tank> postProcessor, Tracer tracer, int responseStatusCode) {
+            LocationConfig config, PostProcessor<NZXTank> postProcessor, Tracer tracer, int responseStatusCode) {
         super(originalRequest, ctx, requestDateTime, requestID, requestURI, config, postProcessor, tracer);
         this.responseStatusCode = responseStatusCode;
     }

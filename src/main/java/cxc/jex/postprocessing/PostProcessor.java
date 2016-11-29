@@ -7,26 +7,20 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.locks.Condition;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
 
+import cxc.jex.buffer.ByteBufferPool;
 import cxc.jex.server.Server;
 import cxc.jex.tracer.Tracer;
 
-public abstract class PostProcessor<T> extends Server {
-    private Lock lock = new ReentrantLock();
-    private Condition comingEmptyTanks = lock.newCondition();
-
+public abstract class PostProcessor<T extends Tank> extends Server {
     private ExecutorService executor;
+    boolean started = false;
 
-    final AtomicBoolean started = new AtomicBoolean(false);
     final ConcurrentLinkedQueue<T> loadedTanks = new ConcurrentLinkedQueue<>();
-    final ConcurrentLinkedQueue<T> emptyTanks = new ConcurrentLinkedQueue<>();
+
     protected final List<Action<T>> actions = new ArrayList<>();
 
-    private int maxTanksCount;
+    private ByteBufferPool bufferPool;
     private List<Worker<T>> workers = new ArrayList<>();
     private Random random = new Random();
 
@@ -34,8 +28,8 @@ public abstract class PostProcessor<T> extends Server {
         super(tracer.getSubtracer(name));
     }
 
-    public void init(int workers, int maxTanksCount, List<Action<T>> actions, ThreadFactory threadFactory) {
-        this.maxTanksCount = maxTanksCount;
+    public void init(int workers, int bufferPoolSize, int bufferSizeMin, List<Action<T>> actions, ThreadFactory threadFactory) {
+        bufferPool = new ByteBufferPool(bufferPoolSize, bufferSizeMin);
         executor = Executors.newFixedThreadPool(workers, threadFactory);
         for (int i = 0; i < workers; i++) {
             this.workers.add(new Worker<T>(this));
@@ -47,7 +41,7 @@ public abstract class PostProcessor<T> extends Server {
 
     @Override
     public void start() {
-        started.set(true);
+        started = true;
         tracer.info("Starting", "count of workers " + workers.size());
         for (Worker<T> item : workers) {
             executor.submit(item);
@@ -56,7 +50,7 @@ public abstract class PostProcessor<T> extends Server {
 
     @Override
     public void stop() {
-        started.set(false);
+        started = false;
         for (Worker<T> item : workers) {
             item.signal();
         }
@@ -64,39 +58,12 @@ public abstract class PostProcessor<T> extends Server {
         tracer.info("Stoped", "");
     }
 
-    protected abstract T makeTank();
-
-    public T getEmptyTank() {
-        T result = emptyTanks.poll();
-        if (result == null) {
-            int tanksCount = loadedTanks.size() + emptyTanks.size();
-            if (tanksCount < maxTanksCount || maxTanksCount == 0) {
-                result = makeTank();
-                tracer.info("Tank.Created", "count of tanks ~ " + (tanksCount + 1));
-            } else {
-                tracer.info("Tank.Awaiting", "count of tanks ~ " + (tanksCount + 1));
-                while (true) {
-                    lock.lock();
-                    try {
-                        result = emptyTanks.poll();
-                        if (result != null) {
-                            break;
-                        } else {
-                            comingEmptyTanks.await();
-                        }
-                    } catch (InterruptedException e) {
-                        tracer.error("Error/NOTIFY_ADMIN", e.getMessage(), e);
-                    } finally {
-                        lock.unlock();
-                    }
-                }
-            }
-        }
-        return result;
+    public void attachBuffer(T tank, int capacity) {
+        tank.setBuffer(bufferPool.borrow(capacity));
     }
 
     public void put(T loadedTank) {
-        if (!started.get()) {
+        if (!started) {
             tracer.error("Error/NOTIFY_ADMIN", "Not started!");
             return;
         }
@@ -108,19 +75,11 @@ public abstract class PostProcessor<T> extends Server {
     }
 
     public boolean isStarted() {
-        return started.get();
+        return started;
     }
 
     Tracer getTracer() {
         return tracer;
     }
 
-    void checkEmptyTanks() {
-        lock.lock();
-        try {
-            comingEmptyTanks.signal();
-        } finally {
-            lock.unlock();
-        }
-    }
 }

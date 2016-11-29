@@ -32,8 +32,7 @@ public class HTTPServer extends Server {
     public void bootstrap() {
         tracer.info("Bootstrap", "listen " + config.listenHost + ":" + config.listenPort);
         if (config.post_processing != null && config.post_processing.enable) {
-            int bufferSize = Math.max(config.max_request_buffer_size, config.max_response_buffer_size);
-            postProcessor = new NZXPostProcessor("#PostProcessor", config.post_processing, bufferSize, tracer);
+            postProcessor = new NZXPostProcessor("#PostProcessor", config.post_processing, tracer);
             postProcessor.bootstrap();
         }
         for (LocationConfig item : config.locations.values()) {

@@ -7,7 +7,7 @@ import cxc.jex.tracer.Tracer;
 import ru.otr.nzx.http.HTTPServer.ObjectType;
 import ru.otr.nzx.util.NZXUtil;
 
-public class Matching implements Action<Tank> {
+public class Matching implements Action<NZXTank> {
 
     private final String marker;
     private final int maxContentLength;
@@ -20,10 +20,10 @@ public class Matching implements Action<Tank> {
     }
 
     @Override
-    public void process(Tank tank, Tracer tracer) {
-        if (tank.type == ObjectType.RES && tank.contentLength > 0 && tank.contentLength <= maxContentLength) {
+    public void process(NZXTank tank, Tracer tracer) {
+        if (tank.type == ObjectType.RES && tank.getBuffer().getContentLength() > 0 && tank.getBuffer().getContentLength() <= maxContentLength) {
             try (ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
-                baos.write(tank.data, 0, tank.contentLength);
+                tank.getBuffer().read(baos);
                 String content = baos.toString();
                 if (content.matches(regex)) {
                     tracer.info("Matching." + marker + "/" + marker, NZXUtil.tankToShortLine(tank));

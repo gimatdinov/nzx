@@ -9,13 +9,13 @@ import cxc.jex.postprocessing.Action;
 import cxc.jex.tracer.Tracer;
 import ru.otr.nzx.config.http.location.LocationConfig;
 
-public class Dumping implements Action<Tank> {
+public class Dumping implements Action<NZXTank> {
     private static final DateFormat idDateFormat = new SimpleDateFormat("yyyy-MM-dd_HHmmss_SSS");
     private static final DateFormat dayDateFormat = new SimpleDateFormat("yyyy-MM-dd");
 
     @Override
-    public void process(Tank tank, Tracer tracer) {
-        if (tank.contentLength > 0) {
+    public void process(NZXTank tank, Tracer tracer) {
+        if (tank.getBuffer().getContentLength() > 0) {
             String dump_content_store = tank.properties.get(LocationConfig.DUMP_CONTENT_STORE);
             if (dump_content_store != null) {
                 StringBuilder path = new StringBuilder();
@@ -35,10 +35,10 @@ public class Dumping implements Action<Tank> {
                 path.append("_");
                 path.append(tank.type);
 
-                tracer.debug("Dumping", "file=[" + path + "] size=" + tank.contentLength);
+                tracer.debug("Dumping", "file=[" + path + "] size=" + tank.getBuffer().getContentLength());
 
                 try (FileOutputStream fos = new FileOutputStream(path.toString())) {
-                    fos.write(tank.data, 0, tank.contentLength);
+                    tank.getBuffer().read(fos);
                 } catch (Exception e) {
                     tracer.error("Dumping.Error/NOTIFY_ADMIN", "file=[" + path + "]", e);
                 }

@@ -4,7 +4,7 @@ import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
-class Worker<T> implements Runnable {
+class Worker<T extends Tank> implements Runnable {
     private Lock lock = new ReentrantLock();
     private Condition comingLoadedTanks = lock.newCondition();
     private final PostProcessor<T> postProcessor;
@@ -16,7 +16,7 @@ class Worker<T> implements Runnable {
     @Override
     public void run() {
         postProcessor.getTracer().info("Worker.Starting", "");
-        while (postProcessor.started.get()) {
+        while (postProcessor.started) {
             lock.lock();
             T tank = postProcessor.loadedTanks.poll();
             try {
@@ -31,8 +31,7 @@ class Worker<T> implements Runnable {
                 postProcessor.getTracer().error("Worker.Error/NOTIFY_ADMIN", tank.toString(), e);
             } finally {
                 if (tank != null) {
-                    postProcessor.emptyTanks.add(tank);
-                    postProcessor.checkEmptyTanks();
+                    tank.getBuffer().release();
                 }
                 lock.unlock();
             }

@@ -18,7 +18,7 @@ import io.netty.handler.codec.http.HttpHeaders.Names;
 import io.netty.handler.codec.http.HttpHeaders.Values;
 import ru.otr.nzx.NZXConstants;
 import ru.otr.nzx.http.HTTPServer.ObjectType;
-import ru.otr.nzx.postprocessing.Tank;
+import ru.otr.nzx.postprocessing.NZXTank;
 
 public class NZXUtil {
     private static final DateFormat idDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
@@ -61,7 +61,7 @@ public class NZXUtil {
         return result.toString();
     }
 
-    public static String tankToShortLine(Tank tank) {
+    public static String tankToShortLine(NZXTank tank) {
         StringBuilder result = new StringBuilder();
         result.append(idDateFormat.format(tank.requestDateTime));
         result.append(" ");
@@ -77,7 +77,7 @@ public class NZXUtil {
         }
         result.append(" ");
         result.append("LEN=");
-        result.append(tank.contentLength);
+        result.append(tank.getBuffer().getContentLength());
         result.append(" ");
         result.append(tank.success ? "success" : "unfinished");
         return result.toString();
