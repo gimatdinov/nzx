@@ -5,14 +5,14 @@ import org.apache.ftpserver.FtpServer;
 import org.apache.ftpserver.FtpServerFactory;
 import org.apache.ftpserver.ftplet.FtpException;
 
-import cxc.jex.server.Server;
 import cxc.jex.tracer.Tracer;
 
-public abstract class FTPServer extends Server {
+public abstract class FTPServer {
+    protected final Tracer tracer;
     protected FtpServer srv;
 
-    public FTPServer(String name, Tracer tracer) {
-        super(tracer.getSubtracer(name));
+    public FTPServer(Tracer tracer) {
+        this.tracer = tracer;
     }
 
     public void init(String host, int port, boolean activeEnable, String passivePorts, String directory, boolean anonymousEnable) {
@@ -32,10 +32,8 @@ public abstract class FTPServer extends Server {
 
         serverFactory.getListeners();
         srv = serverFactory.createServer();
-
     }
 
-    @Override
     public void start() {
         tracer.info("Starting", "");
         try {
@@ -45,7 +43,6 @@ public abstract class FTPServer extends Server {
         }
     }
 
-    @Override
     public void stop() {
         srv.stop();
         tracer.info("Stoped", "");

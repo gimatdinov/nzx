@@ -7,32 +7,31 @@ import org.littleshoot.proxy.HttpProxyServer;
 import org.littleshoot.proxy.HttpProxyServerBootstrap;
 import org.littleshoot.proxy.impl.DefaultHttpProxyServer;
 
-import cxc.jex.server.Server;
 import cxc.jex.tracer.Tracer;
 import ru.otr.nzx.config.http.HTTPServerConfig;
 import ru.otr.nzx.config.http.location.LocationConfig;
 import ru.otr.nzx.postprocessing.NZXPostProcessor;
 
-public class HTTPServer extends Server {
+public class HTTPServer {
     public static enum ObjectType {
         REQ, RES
     }
 
+    private final Tracer tracer;
     private final HTTPServerConfig config;
     private HttpProxyServerBootstrap srvBootstrap;
     private HttpProxyServer srv;
     private NZXPostProcessor postProcessor;
 
     public HTTPServer(HTTPServerConfig config, Tracer tracer) {
-        super(tracer.getSubtracer(config.name));
+        this.tracer = tracer.getSubtracer(config.name);
         this.config = config;
     }
 
-    @Override
     public void bootstrap() {
         tracer.info("Bootstrap", "listen " + config.listenHost + ":" + config.listenPort);
         if (config.post_processing != null && config.post_processing.enable) {
-            postProcessor = new NZXPostProcessor("#PostProcessor", config.post_processing, tracer);
+            postProcessor = new NZXPostProcessor(config.post_processing, tracer.getSubtracer("#PostProcessor"));
             postProcessor.bootstrap();
         }
         for (LocationConfig item : config.locations.values()) {
@@ -59,16 +58,16 @@ public class HTTPServer extends Server {
             srvBootstrap.withIdleConnectionTimeout(config.idle_connection_timeout);
         }
         srvBootstrap.withFiltersSource(new HTTPFiltersSource(config, postProcessor, tracer));
-        
-//        srvBootstrap.withChainProxyManager(new ChainedProxyManager() {
-//            public void lookupChainedProxies(HttpRequest httpRequest, Queue<ChainedProxy> chainedProxies) {
-//                chainedProxies.add(ChainedProxyAdapter.FALLBACK_TO_DIRECT_CONNECTION);
-//            }
-//        });
+
+        // srvBootstrap.withChainProxyManager(new ChainedProxyManager() {
+        // public void lookupChainedProxies(HttpRequest httpRequest,
+        // Queue<ChainedProxy> chainedProxies) {
+        // chainedProxies.add(ChainedProxyAdapter.FALLBACK_TO_DIRECT_CONNECTION);
+        // }
+        // });
 
     }
 
-    @Override
     public void start() {
         tracer.info("Starting", "");
         if (postProcessor != null) {
@@ -77,7 +76,6 @@ public class HTTPServer extends Server {
         srv = srvBootstrap.start();
     }
 
-    @Override
     public void stop() {
         srv.stop();
         if (postProcessor != null) {

@@ -13,13 +13,13 @@
 	
     <appender name="EMAIL" class="cxc.jex.tracer.logback.EmailAppender">
         <markers>NOTIFY_ADMIN, PROXY_PASS_ERROR, SOAP_FAULT, HTTP_FAULT</markers>
-        <smtpHost>smtp.mail.ru</smtpHost>
+        <smtpHost>smtpHost</smtpHost>
         <smtpPort>465</smtpPort>
         <ssl>true</ssl>
-        <username></username>
-        <password></password>
-        <from></from>
-        <to></to>
+        <username>username</username>
+        <password>password</password>
+        <from>from@domain</from>
+        <to>to@domain</to>
         <subject>%-5level: %msg</subject>
         <body>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} : %msg%n</body>
     </appender>

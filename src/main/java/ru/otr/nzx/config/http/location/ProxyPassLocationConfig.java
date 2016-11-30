@@ -12,7 +12,7 @@ public class ProxyPassLocationConfig extends LocationConfig {
     public final static String PROXY_PASS = "proxy_pass";
     public final static String PROXY_SET_HEADERS = "proxy_set_headers";
 
-    public final URI proxy_pass;
+    private URI proxy_pass;
     public final Map<String, String> proxy_set_headers;
 
     public ProxyPassLocationConfig(String path, JSONObject src) throws URISyntaxException {
@@ -38,6 +38,14 @@ public class ProxyPassLocationConfig extends LocationConfig {
             location.append(PROXY_SET_HEADERS, new JSONObject().put("name", item.getKey()).put("value", item.getValue()));
         }
         return location;
+    }
+
+    public URI getProxyPass() {
+        return proxy_pass;
+    }
+
+    public void setProxyPass(String uri) throws URISyntaxException {
+        this.proxy_pass = new URI(uri);
     }
 
 }

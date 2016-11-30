@@ -17,7 +17,7 @@ public class NZXConfig {
     public final static String FTP = "ftp";
     public final static String HTTP = "http";
 
-    public final String name;
+    private String name;
     public final String log_config;
     public final String log;
     public final FTPConfig ftp;
@@ -69,6 +69,14 @@ public class NZXConfig {
     @Override
     public String toString() {
         return toJSON().toString();
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
     }
 
 }

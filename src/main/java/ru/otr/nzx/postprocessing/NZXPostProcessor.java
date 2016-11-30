@@ -16,8 +16,8 @@ public class NZXPostProcessor extends PostProcessor<NZXTank> {
 
     private final PostProcessorConfig config;
 
-    public NZXPostProcessor(String name, PostProcessorConfig config, Tracer tracer) {
-        super(name, tracer);
+    public NZXPostProcessor(PostProcessorConfig config, Tracer tracer) {
+        super(tracer);
         this.config = config;
     }
 
@@ -41,7 +41,6 @@ public class NZXPostProcessor extends PostProcessor<NZXTank> {
         }
     }
 
-    @Override
     public void bootstrap() {
         super.init(config.workers, config.buffer_pool_size, config.buffer_size_min, loadActions(config.actions),
                 new ThreadFactoryBuilder().setNameFormat("nzx-PostProcessor-Worker-%d").build());

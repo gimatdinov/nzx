@@ -66,14 +66,15 @@ public class NZXApplication implements CommandLineRunner {
             File configDir = configFile.getParentFile();
             log.info("Config.File: " + configFile);
             NZXConfig config = new NZXConfig(configFile);
-            String serverName = (config.name != null) ? config.name : InetAddress.getLocalHost().getHostName();
+            String serverName = (config.getName() != null) ? config.getName() : InetAddress.getLocalHost().getHostName();
             if (cmdLine.getOptionValue(OPTION_NAME) != null) {
                 serverName = cmdLine.getOptionValue(OPTION_NAME);
             }
+            config.setName(serverName);
             if (config.log_config != null) {
                 loadLogConfig(configDir.getPath() + File.separator + config.log_config, config.log);
             }
-            Tracer tracer = new LogbackTracer(serverName);
+            Tracer tracer = new LogbackTracer("NZX");
             nzx = new NZX(config, tracer);
             nzx.bootstrap();
             nzx.start();

@@ -99,18 +99,18 @@ public class ProxyPassLocation extends Location<ProxyPassLocationConfig> {
     @Override
     public void serverToProxyResponseTimedOut() {
         super.serverToProxyResponseTimedOut();
-        tracer.warn("Server.Response.TimedOut/PROXY_PASS_ERROR", "");
+        tracer.warn("Server.Response.TimedOut/PROXY_PASS_ERROR", passURI.toString());
     }
 
     @Override
     public void proxyToServerConnectionFailed() {
         super.proxyToServerConnectionFailed();
-        tracer.warn("Server.Connection.Failed/PROXY_PASS_ERROR", "");
+        tracer.warn("Server.Connection.Failed/PROXY_PASS_ERROR", passURI.toString());
     }
 
     protected static URI makePassURI(URI uri, ProxyPassLocationConfig cfg) throws URISyntaxException {
         String path = uri.normalize().getPath();
-        URI result = cfg.proxy_pass;
+        URI result = cfg.getProxyPass();
         String pathTail = path.substring(cfg.path.length());
         if (pathTail.length() > 0) {
             result = new URI(result.toString() + "/" + pathTail).normalize();

@@ -9,10 +9,10 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
 
 import cxc.jex.buffer.ByteBufferPool;
-import cxc.jex.server.Server;
 import cxc.jex.tracer.Tracer;
 
-public abstract class PostProcessor<T extends Tank> extends Server {
+public abstract class PostProcessor<T extends Tank> {
+    private final Tracer tracer;
     private ExecutorService executor;
     boolean started = false;
 
@@ -24,8 +24,8 @@ public abstract class PostProcessor<T extends Tank> extends Server {
     private List<Worker<T>> workers = new ArrayList<>();
     private Random random = new Random();
 
-    public PostProcessor(String name, Tracer tracer) {
-        super(tracer.getSubtracer(name));
+    public PostProcessor(Tracer tracer) {
+        this.tracer = tracer;
     }
 
     public void init(int workers, int bufferPoolSize, int bufferSizeMin, List<Action<T>> actions, ThreadFactory threadFactory) {
@@ -39,7 +39,6 @@ public abstract class PostProcessor<T extends Tank> extends Server {
         }
     }
 
-    @Override
     public void start() {
         started = true;
         tracer.info("Starting", "count of workers " + workers.size());
@@ -48,7 +47,6 @@ public abstract class PostProcessor<T extends Tank> extends Server {
         }
     }
 
-    @Override
     public void stop() {
         started = false;
         for (Worker<T> item : workers) {

@@ -16,4 +16,4 @@ HTTP proxy, based on LittleProxy (https://github.com/adamfisk/LittleProxy), conf
 ``mvn package``
 
 ## Run
-``java -jar target/nzx-0.12.jar -c src/test/config/nzx-test.conf``
+``java -jar target/nzx-1.0.0.jar -c src/test/config/nzx-test.conf``

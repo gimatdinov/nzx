@@ -1,5 +1,6 @@
 package cxc.jex.buffer;
 
+import java.util.UUID;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -17,6 +18,7 @@ public class ByteBufferPool {
     final byte[] space;
 
     private final Cell[][] layout;
+    private int numberInQueue = 0;
 
     public ByteBufferPool(int size, int bufferSizeMin) {
         this.bufferSizeMin = bufferSizeMin;
@@ -61,16 +63,17 @@ public class ByteBufferPool {
     }
 
     public ByteBuffer borrow(int capacity) {
-        log.trace("free space " + layout[layout.length - 1][0].getFreeSpace());
+        String id = UUID.randomUUID().toString().substring(0, 7);
         int level = getLevelFor(capacity);
-        log.trace("borrow " + capacity + " level " + level);
+        log.trace(id + " borrow " + capacity + " level " + level + " free space " + layout[layout.length - 1][0].getFreeSpace());
         if (level < 0) {
             throw new IndexOutOfBoundsException();
         }
         Cell cell = null;
-        while (cell == null) {
-            lock.lock();
-            try {
+        lock.lock();
+        try {
+            numberInQueue++;
+            while (cell == null) {
                 int ri = (int) Math.floor((Math.random() * (layout[level].length - 1)));
                 for (int i = ri; i >= 0; i--) {
                     if (!layout[level][i].isBusy()) {
@@ -89,15 +92,18 @@ public class ByteBufferPool {
                     }
                 }
                 if (cell == null) {
+                    log.trace(id + " borrow suspended " + numberInQueue);
                     returnedСell.await();
+                    log.trace(id + " borrow resumed");
                 }
-            } catch (InterruptedException e) {
-                log.error(e.getMessage(), e);
-            } finally {
-                lock.unlock();
             }
+            numberInQueue--;
+        } catch (InterruptedException e) {
+            log.error(e.getMessage(), e);
+        } finally {
+            lock.unlock();
         }
-        log.trace("cell size=" + cell.size() + " pos=(" + cell.begin + ", " + cell.end + ")");
+        log.trace(id + " cell size=" + cell.size() + " pos=(" + cell.begin + ", " + cell.end + ")");
         return new ByteBuffer(this, cell);
     }
 
@@ -114,13 +120,5 @@ public class ByteBufferPool {
     public int getFreeSpace() {
         return layout[layout.length - 1][0].getFreeSpace();
     }
-
-//    public static void main(String... args) {
-//        ByteBufferPool pool = new ByteBufferPool(100, 9);
-//        ByteBuffer buf = pool.borrow(10);
-//        log.info("" + pool.getFreeSpace());
-//        buf.release();
-//        log.info("" + pool.getFreeSpace());
-//    }
 
 }
