@@ -13,12 +13,13 @@
 	
     <appender name="EMAIL" class="cxc.jex.tracer.logback.EmailAppender">
         <markers>NOTIFY_ADMIN, PROXY_PASS_ERROR, SOAP_FAULT, HTTP_FAULT</markers>
-        <smtpHost>localhost</smtpHost>
-        <smtpPort>2525</smtpPort>
-        <username>USERNAME</username>
-        <password>PASSWORD</password>
-        <from>nzx@otr.ru</from>
-        <to>admin@otr.ru</to>
+        <smtpHost>smtp.mail.ru</smtpHost>
+        <smtpPort>465</smtpPort>
+        <ssl>true</ssl>
+        <username></username>
+        <password></password>
+        <from></from>
+        <to></to>
         <subject>%-5level: %msg</subject>
         <body>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} : %msg%n</body>
     </appender>
@@ -30,7 +31,7 @@
 	</appender>
 
     <logger name="cxc.jex.buffer.ByteBufferPool" level="TRACE"/>
-	<logger name="&lt;&lt;Tracer&gt;&gt;" level="DEBUG"/>
+	<logger name="--|Tracer|--" level="DEBUG"/>
 	<logger name="org.littleshoot.proxy.impl.DefaultHttpProxyServer" level="WARN"/>
 	<logger name="org.littleshoot.proxy.impl.ClientToProxyConnection" level="WARN"/>
 	<logger name="org.littleshoot.proxy.impl.ProxyToServerConnection" level="WARN"/>

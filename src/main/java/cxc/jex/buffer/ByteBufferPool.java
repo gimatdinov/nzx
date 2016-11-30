@@ -105,7 +105,7 @@ public class ByteBufferPool {
         lock.lock();
         try {
             cell.unhold();
-            returnedСell.signalAll();
+            returnedСell.signal();
         } finally {
             lock.unlock();
         }
@@ -115,12 +115,12 @@ public class ByteBufferPool {
         return layout[layout.length - 1][0].getFreeSpace();
     }
 
-    public static void main(String... args) {
-        ByteBufferPool pool = new ByteBufferPool(100, 9);
-        ByteBuffer buf = pool.borrow(10);
-        log.info("" + pool.getFreeSpace());
-        buf.release();
-        log.info("" + pool.getFreeSpace());
-    }
+//    public static void main(String... args) {
+//        ByteBufferPool pool = new ByteBufferPool(100, 9);
+//        ByteBuffer buf = pool.borrow(10);
+//        log.info("" + pool.getFreeSpace());
+//        buf.release();
+//        log.info("" + pool.getFreeSpace());
+//    }
 
 }

@@ -14,7 +14,7 @@ public class LogbackTracerLogger implements TracerLogger {
         Throwable throwable;
     }
 
-    private final static Logger log = LoggerFactory.getLogger("<<Tracer>>");
+    private final static Logger log = LoggerFactory.getLogger("--|Tracer|--");
 
     private String path;
 
