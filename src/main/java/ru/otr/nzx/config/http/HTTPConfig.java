@@ -3,34 +3,33 @@ package ru.otr.nzx.config.http;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
 
-public class HTTPConfig {
-	public final static String SERVERS = "servers";
+import ru.otr.nzx.config.Config;
 
-	public final List<HTTPServerConfig> servers;
+public class HTTPConfig extends Config {
+    public final static String SERVERS = "servers";
 
-	public HTTPConfig(JSONObject src) throws URISyntaxException {
-		servers = new ArrayList<HTTPServerConfig>();
-		JSONArray srvArray = src.getJSONArray(SERVERS);
-		for (int i = 0; i < srvArray.length(); i++) {
-			servers.add(new HTTPServerConfig(srvArray.getJSONObject(i)));
-		}
-	}
+    public final List<HTTPServerConfig> servers;
 
-	public JSONObject toJSON() {
-		JSONObject http = new JSONObject();
-		for (HTTPServerConfig item : servers) {
-			http.append(SERVERS, item.toJSON());
-		}
-		return http;
-	}
+    public HTTPConfig(JSONObject src, String route, final Map<String, Config> routes) throws URISyntaxException {
+        super(src, route, routes);
+        servers = new ArrayList<HTTPServerConfig>();
+        JSONArray srvArray = src.getJSONArray(SERVERS);
+        for (int i = 0; i < srvArray.length(); i++) {
+            servers.add(new HTTPServerConfig(srvArray.getJSONObject(i), route + "/" + SERVERS, routes));
+        }
+    }
 
-	@Override
-	public String toString() {
-		return toJSON().toString();
-	}
-
+    @Override
+    public JSONObject toJSON() {
+        JSONObject http = new JSONObject();
+        for (HTTPServerConfig item : servers) {
+            http.append(SERVERS, item.toJSON());
+        }
+        return http;
+    }
 }

@@ -1,12 +1,16 @@
 package ru.otr.nzx.config.ftp;
 
+import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
 
-public class FTPServerConfig {
+import ru.otr.nzx.config.Config;
+
+public class FTPServerConfig extends Config {
     public final static String ENABLE = "enable";
     public final static String NAME = "name";
     public final static String LISTEN = "listen";
@@ -33,7 +37,8 @@ public class FTPServerConfig {
         return listenHost + ":" + listenPort;
     }
 
-    public FTPServerConfig(JSONObject src) {
+    public FTPServerConfig(JSONObject src, String route, Map<String, Config> routes) throws URISyntaxException {
+        super(src, route + "/" + src.getString(NAME), routes);
         enable = src.optBoolean(ENABLE, true);
         name = src.getString(NAME);
         String[] listen = src.getString(LISTEN).split(":");
@@ -50,11 +55,12 @@ public class FTPServerConfig {
         if (!anonymous_enable) {
             JSONArray userArray = src.getJSONArray(USERS);
             for (int i = 0; i < userArray.length(); i++) {
-                users.add(new FTPUserConfig(userArray.getJSONObject(i)));
+                users.add(new FTPUserConfig(userArray.getJSONObject(i), route + "/" + name, routes));
             }
         }
     }
 
+    @Override
     public JSONObject toJSON() {
         JSONObject server = new JSONObject();
         if (!enable) {
@@ -72,11 +78,6 @@ public class FTPServerConfig {
             server.append(USERS, item.toJSON());
         }
         return server;
-    }
-
-    @Override
-    public String toString() {
-        return toJSON().toString();
     }
 
 }

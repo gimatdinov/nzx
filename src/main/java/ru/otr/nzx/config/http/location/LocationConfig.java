@@ -1,8 +1,13 @@
 package ru.otr.nzx.config.http.location;
 
+import java.net.URISyntaxException;
+import java.util.Map;
+
 import org.json.JSONObject;
 
-public class LocationConfig {
+import ru.otr.nzx.config.Config;
+
+public class LocationConfig extends Config {
     public final static String ENABLE = "enable";
     public final static String PATH = "path";
     public final static String POST_PROCESSING_ENABLE = "post_processing_enable";
@@ -13,7 +18,8 @@ public class LocationConfig {
     public final boolean post_processing_enable;
     public final String dump_content_store;
 
-    public LocationConfig(String path, JSONObject src) {
+    public LocationConfig(String path, JSONObject src, String route, final Map<String, Config> routes) throws URISyntaxException {
+        super(src, route + path, routes);
         enable = src.optBoolean(ENABLE, true);
         this.path = path;
         post_processing_enable = src.optBoolean(POST_PROCESSING_ENABLE, false);
@@ -21,6 +27,7 @@ public class LocationConfig {
 
     }
 
+    @Override
     public JSONObject toJSON() {
         JSONObject location = new JSONObject();
         if (!enable) {
@@ -30,11 +37,6 @@ public class LocationConfig {
         location.put(POST_PROCESSING_ENABLE, post_processing_enable);
         location.put(DUMP_CONTENT_STORE, dump_content_store);
         return location;
-    }
-
-    @Override
-    public String toString() {
-        return toJSON().toString();
     }
 
     public static String cleanPath(String path) {

@@ -3,7 +3,6 @@ package ru.otr.nzx.http;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Date;
-import java.util.UUID;
 
 import org.littleshoot.proxy.HttpFilters;
 import org.littleshoot.proxy.HttpFiltersSourceAdapter;
@@ -42,9 +41,9 @@ public class HTTPFiltersSource extends HttpFiltersSourceAdapter {
     }
 
     public HttpFilters filterRequest(HttpRequest request, ChannelHandlerContext ctx) {
-        String requestID = makeRequestID();
+        String requestID = NZXUtil.makeRequestID();
         Date requestDateTime = new Date();
-        tracer.info("Request", "ID=" + requestID + " " + NZXUtil.requestToLongLine(request, ctx, tracer.isDebugEnabled()));
+        tracer.info("Request", NZXUtil.requestToLongLine(requestID, request, ctx, tracer.isDebugEnabled()));
         try {
             URI requestURI = new URI(request.getUri()).normalize();
             if (!HttpMethod.CONNECT.equals(request.getMethod())) {
@@ -71,10 +70,6 @@ public class HTTPFiltersSource extends HttpFiltersSourceAdapter {
         } catch (URISyntaxException e) {
             throw new RuntimeException(e);
         }
-    }
-
-    private static String makeRequestID() {
-        return UUID.randomUUID().toString().substring(26, 35);
     }
 
 }

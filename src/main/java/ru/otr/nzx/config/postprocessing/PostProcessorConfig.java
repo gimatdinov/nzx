@@ -1,12 +1,16 @@
 package ru.otr.nzx.config.postprocessing;
 
+import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
 
-public class PostProcessorConfig {
+import ru.otr.nzx.config.Config;
+
+public class PostProcessorConfig extends Config {
     public final static String ENABLE = "enable";
     public final static String BUFFER_POOL_SIZE = "buffer_pool_size";
     public final static String BUFFER_SIZE_MIN = "buffer_size_min";
@@ -19,7 +23,8 @@ public class PostProcessorConfig {
     public final int workers;
     public final List<ActionConfig> actions;
 
-    public PostProcessorConfig(JSONObject src) {
+    public PostProcessorConfig(JSONObject src, String route, final Map<String, Config> routes) throws URISyntaxException {
+        super(src, route, routes);
         enable = src.optBoolean(ENABLE, true);
         buffer_pool_size = src.getInt(BUFFER_POOL_SIZE);
         buffer_size_min = src.getInt(BUFFER_SIZE_MIN);
@@ -28,12 +33,12 @@ public class PostProcessorConfig {
         if (src.has(ACTIONS)) {
             JSONArray actArray = src.getJSONArray(ACTIONS);
             for (int i = 0; i < actArray.length(); i++) {
-                actions.add(new ActionConfig(actArray.getJSONObject(i)));
+                actions.add(new ActionConfig(actArray.getJSONObject(i), route + "/" + i, routes));
             }
         }
-
     }
 
+    @Override
     public JSONObject toJSON() {
         JSONObject server = new JSONObject();
         if (!enable) {
@@ -50,8 +55,4 @@ public class PostProcessorConfig {
         return server;
     }
 
-    @Override
-    public String toString() {
-        return toJSON().toString();
-    }
 }

@@ -8,6 +8,8 @@ import java.util.Map;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
+import ru.otr.nzx.config.Config;
+
 public class ProxyPassLocationConfig extends LocationConfig {
     public final static String PROXY_PASS = "proxy_pass";
     public final static String PROXY_SET_HEADERS = "proxy_set_headers";
@@ -15,8 +17,8 @@ public class ProxyPassLocationConfig extends LocationConfig {
     private URI proxy_pass;
     public final Map<String, String> proxy_set_headers;
 
-    public ProxyPassLocationConfig(String path, JSONObject src) throws URISyntaxException {
-        super(path, src);
+    public ProxyPassLocationConfig(String path, JSONObject src, String route, final Map<String, Config> routes) throws URISyntaxException {
+        super(path, src, route, routes);
         proxy_pass = new URI(src.getString(PROXY_PASS));
 
         proxy_set_headers = new HashMap<String, String>();

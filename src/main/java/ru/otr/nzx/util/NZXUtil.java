@@ -3,6 +3,7 @@ package ru.otr.nzx.util;
 import java.net.URI;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.util.UUID;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
@@ -23,8 +24,14 @@ import ru.otr.nzx.postprocessing.NZXTank;
 public class NZXUtil {
     private static final DateFormat idDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
 
-    public static String requestToLongLine(HttpRequest request, ChannelHandlerContext ctx, boolean debug) {
+    public static String makeRequestID() {
+        return UUID.randomUUID().toString().substring(26, 35);
+    }
+
+    public static String requestToLongLine(String requestID, HttpRequest request, ChannelHandlerContext ctx, boolean debug) {
         StringBuilder result = new StringBuilder();
+        result.append("ID=" + requestID);
+        result.append(" ");
         result.append(request.getUri());
         result.append(" ");
         result.append(ObjectType.REQ);
@@ -87,10 +94,14 @@ public class NZXUtil {
         String content = "<html><head><title>" + HttpResponseStatus.valueOf(responseStatusCode).toString()
                 + "</title></head><body bgcolor=\"white\"><center><h1>" + HttpResponseStatus.valueOf(responseStatusCode).toString()
                 + "</h1></center><hr><center>NZX " + NZXConstants.NZX_VERSION + "</center></body></html>";
+        return makeSimpleResponse(content, "text/html; charset=UTF-8", responseStatusCode, httpVersion);
+    }
+
+    public static FullHttpResponse makeSimpleResponse(String content, String contentType, int responseStatusCode, HttpVersion httpVersion) {
         ByteBuf buffer = Unpooled.wrappedBuffer(content.getBytes());
         FullHttpResponse response = new DefaultFullHttpResponse(httpVersion, HttpResponseStatus.valueOf(responseStatusCode), buffer);
         HttpHeaders.setContentLength(response, buffer.readableBytes());
-        HttpHeaders.setHeader(response, HttpHeaders.Names.CONTENT_TYPE, "text/html; charset=UTF-8");
+        HttpHeaders.setHeader(response, HttpHeaders.Names.CONTENT_TYPE, contentType);
         HttpHeaders.setHeader(response, Names.CONNECTION, Values.CLOSE);
         return response;
     }

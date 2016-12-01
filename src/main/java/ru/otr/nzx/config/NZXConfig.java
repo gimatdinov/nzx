@@ -1,53 +1,47 @@
 package ru.otr.nzx.config;
 
-import java.io.File;
-import java.io.IOException;
 import java.net.URISyntaxException;
-import java.nio.file.Files;
+import java.util.Map;
 
 import org.json.JSONObject;
 
 import ru.otr.nzx.config.ftp.FTPConfig;
 import ru.otr.nzx.config.http.HTTPConfig;
 
-public class NZXConfig {
+public class NZXConfig extends Config {
     public final static String NAME = "name";
     public final static String LOG_CONFIG = "log_config";
     public final static String LOG = "log";
+    public final static String CONFIG_SERVICE_PORT = "config_service_port";
     public final static String FTP = "ftp";
     public final static String HTTP = "http";
 
     private String name;
     public final String log_config;
     public final String log;
+    public final int config_service_port;
     public final FTPConfig ftp;
     public final HTTPConfig http;
 
-    public NZXConfig(File file) throws URISyntaxException, IOException {
-        this(new String(Files.readAllBytes(file.toPath())));
-    }
-
-    public NZXConfig(String src) throws URISyntaxException {
-        String[] lines = src.split("\n");
-        StringBuilder cleanSrc = new StringBuilder();
-        for (String line : lines) {
-            if (!line.trim().startsWith("//")) {
-                cleanSrc.append(line);
-                cleanSrc.append("\n");
-            }
-        }
-        JSONObject config = new JSONObject(cleanSrc.toString());
-        name = config.optString(NAME, null);
-        log_config = config.optString(LOG_CONFIG, null);
-        log = config.optString(LOG, "log");
-        if (config.has(FTP)) {
-            ftp = new FTPConfig(config.getJSONObject(FTP));
+    public NZXConfig(JSONObject src, Map<String, Config> routes) throws URISyntaxException {
+        super(src, "/", routes);
+        name = src.optString(NAME, null);
+        log_config = src.optString(LOG_CONFIG, null);
+        log = src.optString(LOG, "log");
+        config_service_port = src.optInt(CONFIG_SERVICE_PORT, 0);
+        if (src.has(FTP)) {
+            ftp = new FTPConfig(src.getJSONObject(FTP), "/" + FTP, routes);
         } else {
             ftp = null;
         }
-        http = new HTTPConfig(config.getJSONObject(HTTP));
+        if (src.has(HTTP)) {
+            http = new HTTPConfig(src.getJSONObject(HTTP), "/" + HTTP, routes);
+        } else {
+            http = null;
+        }
     }
 
+    @Override
     public JSONObject toJSON() {
         JSONObject config = new JSONObject();
         if (name != null) {
@@ -59,16 +53,16 @@ public class NZXConfig {
         if (!"log".equals(log)) {
             config.put(LOG, log);
         }
+        if (config_service_port > 0) {
+            config.put(CONFIG_SERVICE_PORT, config_service_port);
+        }
         if (ftp != null) {
             config.put(FTP, ftp.toJSON());
         }
-        config.put(HTTP, http.toJSON());
+        if (http != null) {
+            config.put(HTTP, http.toJSON());
+        }
         return config;
-    }
-
-    @Override
-    public String toString() {
-        return toJSON().toString();
     }
 
     public String getName() {

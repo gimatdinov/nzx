@@ -13,6 +13,7 @@ import io.netty.handler.codec.http.HttpHeaders;
 import io.netty.handler.codec.http.HttpObject;
 import io.netty.handler.codec.http.HttpRequest;
 import io.netty.handler.codec.http.HttpResponse;
+import io.netty.handler.codec.http.HttpVersion;
 import io.netty.handler.codec.http.HttpHeaders.Names;
 import ru.otr.nzx.config.http.location.ProxyPassLocationConfig;
 import ru.otr.nzx.https.MITM;
@@ -22,7 +23,7 @@ import ru.otr.nzx.util.NZXUtil;
 public class ProxyPassLocation extends Location<ProxyPassLocationConfig> {
     private static final Pattern HTTPS_SCHEME = Pattern.compile("^https://.*", Pattern.CASE_INSENSITIVE);
 
-    private final URI passURI;
+    private URI passURI;
 
     public ProxyPassLocation(HttpRequest originalRequest, ChannelHandlerContext ctx, Date requestDateTime, String requestID, URI requestURI,
             ProxyPassLocationConfig config, PostProcessor<NZXTank> postProcessor, Tracer tracer) {
@@ -31,12 +32,16 @@ public class ProxyPassLocation extends Location<ProxyPassLocationConfig> {
         try {
             this.passURI = makePassURI(requestURI, config);
         } catch (URISyntaxException e) {
-            throw new RuntimeException(e);
+            tracer.error("Make.PassURI", e.getMessage(), e);
+            this.passURI = null;
         }
     }
 
     @Override
     public HttpResponse clientToProxyRequest(HttpObject httpObject) {
+        if (passURI == null) {
+            return NZXUtil.makeFailureResponse(500, HttpVersion.HTTP_1_1);
+        }
         HttpResponse response = null;
         tracer.info("Client.Request", "PASS " + passURI.toString());
         if (httpObject instanceof HttpRequest) {
@@ -108,7 +113,7 @@ public class ProxyPassLocation extends Location<ProxyPassLocationConfig> {
         tracer.warn("Server.Connection.Failed/PROXY_PASS_ERROR", passURI.toString());
     }
 
-    protected static URI makePassURI(URI uri, ProxyPassLocationConfig cfg) throws URISyntaxException {
+    private static URI makePassURI(URI uri, ProxyPassLocationConfig cfg) throws URISyntaxException {
         String path = uri.normalize().getPath();
         URI result = cfg.getProxyPass();
         String pathTail = path.substring(cfg.path.length());

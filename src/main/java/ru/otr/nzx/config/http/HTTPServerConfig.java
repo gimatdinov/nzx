@@ -9,12 +9,13 @@ import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import ru.otr.nzx.config.Config;
 import ru.otr.nzx.config.http.location.FileLocationConfig;
 import ru.otr.nzx.config.http.location.LocationConfig;
 import ru.otr.nzx.config.http.location.ProxyPassLocationConfig;
 import ru.otr.nzx.config.postprocessing.PostProcessorConfig;
 
-public class HTTPServerConfig {
+public class HTTPServerConfig extends Config {
     private final static Logger log = LoggerFactory.getLogger(HTTPServerConfig.class);
 
     public final static String ENABLE = "enable";
@@ -47,7 +48,8 @@ public class HTTPServerConfig {
         return listenHost + ":" + listenPort;
     }
 
-    public HTTPServerConfig(JSONObject src) throws URISyntaxException {
+    public HTTPServerConfig(JSONObject src, String route, final Map<String, Config> routes) throws URISyntaxException {
+        super(src, route + "/" + src.getString(NAME), routes);
         enable = src.optBoolean(ENABLE, true);
         name = src.getString(NAME);
         String[] listen = src.getString(LISTEN).split(":");
@@ -66,21 +68,21 @@ public class HTTPServerConfig {
             JSONObject loc = locationArray.getJSONObject(i);
             String path = LocationConfig.cleanPath(loc.getString(LocationConfig.PATH));
             if (loc.has(ProxyPassLocationConfig.PROXY_PASS)) {
-                locations.put(path, new ProxyPassLocationConfig(path, loc));
+                locations.put(path, new ProxyPassLocationConfig(path, loc, route + "/" + name, routes));
             } else if (loc.has(FileLocationConfig.FILE)) {
-                locations.put(path, new FileLocationConfig(path, loc));
+                locations.put(path, new FileLocationConfig(path, loc, route + "/" + name, routes));
             } else {
-                locations.put(path, new LocationConfig(path, loc));
+                locations.put(path, new LocationConfig(path, loc, route + "/" + name, routes));
             }
         }
         if (src.has(POST_PROCESSING)) {
-            post_processing = new PostProcessorConfig(src.getJSONObject(POST_PROCESSING));
+            post_processing = new PostProcessorConfig(src.getJSONObject(POST_PROCESSING), route + "/" + name + "/" + POST_PROCESSING, routes);
         } else {
             post_processing = null;
         }
-
     }
 
+    @Override
     public JSONObject toJSON() {
         JSONObject server = new JSONObject();
         if (!enable) {
@@ -108,11 +110,6 @@ public class HTTPServerConfig {
             server.put(POST_PROCESSING, post_processing.toJSON());
         }
         return server;
-    }
-
-    @Override
-    public String toString() {
-        return toJSON().toString();
     }
 
     public LocationConfig locate(String path) {

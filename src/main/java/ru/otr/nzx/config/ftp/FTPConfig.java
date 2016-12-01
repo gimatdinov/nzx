@@ -3,33 +3,34 @@ package ru.otr.nzx.config.ftp;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
 
-public class FTPConfig {
-	public final static String SERVERS = "servers";
+import ru.otr.nzx.config.Config;
 
-	public final List<FTPServerConfig> servers;
+public class FTPConfig extends Config {
+    public final static String SERVERS = "servers";
 
-	public FTPConfig(JSONObject src) throws URISyntaxException {
-		servers = new ArrayList<>();
-		JSONArray srvArray = src.getJSONArray(SERVERS);
-		for (int i = 0; i < srvArray.length(); i++) {
-			servers.add(new FTPServerConfig(srvArray.getJSONObject(i)));
-		}
-	}
+    public final List<FTPServerConfig> servers;
 
-	public JSONObject toJSON() {
-		JSONObject http = new JSONObject();
-		for (FTPServerConfig item : servers) {
-			http.append(SERVERS, item.toJSON());
-		}
-		return http;
-	}
+    public FTPConfig(JSONObject src, String route, Map<String, Config> routes) throws URISyntaxException {
+        super(src, route, routes);
+        servers = new ArrayList<>();
+        JSONArray srvArray = src.getJSONArray(SERVERS);
+        for (int i = 0; i < srvArray.length(); i++) {
+            servers.add(new FTPServerConfig(srvArray.getJSONObject(i), route + "/" + SERVERS, routes));
+        }
+    }
 
-	@Override
-	public String toString() {
-		return toJSON().toString();
-	}
+    @Override
+    public JSONObject toJSON() {
+        JSONObject http = new JSONObject();
+        for (FTPServerConfig item : servers) {
+            http.append(SERVERS, item.toJSON());
+        }
+        return http;
+    }
+
 }
