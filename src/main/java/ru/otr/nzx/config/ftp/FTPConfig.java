@@ -15,9 +15,10 @@ public class FTPConfig extends Config {
 
     public final List<FTPServerConfig> servers;
 
-    public FTPConfig(JSONObject src, String route, Map<String, Config> routes) throws URISyntaxException {
-        super(src, route, routes);
+    public FTPConfig(JSONObject src, String route, Map<String, Object> routes) throws URISyntaxException {
+        super(route, routes);
         servers = new ArrayList<>();
+        routes.put(route + "/" + SERVERS, servers);
         JSONArray srvArray = src.getJSONArray(SERVERS);
         for (int i = 0; i < srvArray.length(); i++) {
             servers.add(new FTPServerConfig(srvArray.getJSONObject(i), route + "/" + SERVERS, routes));

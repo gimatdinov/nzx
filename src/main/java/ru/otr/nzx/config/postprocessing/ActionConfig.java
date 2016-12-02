@@ -1,44 +1,85 @@
 package ru.otr.nzx.config.postprocessing;
 
 import java.net.URISyntaxException;
+import java.util.HashMap;
 import java.util.Map;
 
-import org.json.JSONArray;
 import org.json.JSONObject;
 
 import ru.otr.nzx.config.Config;
+import ru.otr.nzx.postprocessing.NZXAction;
 
 public class ActionConfig extends Config {
-    public final static String ENABLE = "enable";
-    public final static String CLASS = "class";
-    public final static String PARAMETERS = "parameters";
+	public final static String INDEX = "index";
+	public final static String ENABLE = "enable";
+	public final static String ACTION_CLASS = "action_class";
+	public final static String PARAMETERS = "parameters";
 
-    public final boolean enable;
-    public final String clazz;
-    public final String[] parameters;
+	public final int index;
+	public boolean enable;
+	public final String action_class;
 
-    public ActionConfig(JSONObject src, String route, Map<String, Config> routes) throws URISyntaxException {
-        super(src, route, routes);
-        enable = src.optBoolean(ENABLE, true);
-        clazz = src.getString(CLASS);
-        JSONArray paramArray = src.getJSONArray(PARAMETERS);
-        parameters = new String[paramArray.length()];
-        for (int i = 0; i < paramArray.length(); i++) {
-            parameters[i] = paramArray.getString(i);
-        }
-    }
+	private final Map<String, String> parameters = new HashMap<>();
+	private NZXAction action;
 
-    @Override
-    public JSONObject toJSON() {
-        JSONObject action = new JSONObject();
-        if (!enable) {
-            action.put(ENABLE, enable);
-        }
-        action.put(CLASS, clazz);
-        for (String item : parameters) {
-            action.append(PARAMETERS, item);
-        }
-        return action;
-    }
+	public ActionConfig(int index, JSONObject src, String route, Map<String, Object> routes) throws URISyntaxException {
+		super(route + "/" + index, routes);
+		this.index = index;
+		enable = src.optBoolean(ENABLE, true);
+		action_class = src.getString(ACTION_CLASS);
+		for (Object key : src.keySet()) {
+			if (ENABLE.equals(key)) {
+				continue;
+			}
+			if (ACTION_CLASS.equals(key)) {
+				continue;
+			}
+			parameters.put((String) key, src.getString((String) key));
+		}
+	}
+
+	@Override
+	public JSONObject toJSON() {
+		JSONObject json = new JSONObject();
+		json.put(INDEX, index);
+		json.put(ENABLE, enable);
+		json.put(ACTION_CLASS, action_class);
+		for (Map.Entry<String, String> item : parameters.entrySet()) {
+			json.put(item.getKey(), item.getValue());
+		}
+		return json;
+	}
+
+	public boolean isEnable() {
+		return enable;
+	}
+
+	public Map<String, String> getParameters() {
+		return parameters;
+	}
+
+	public void setParameters(Map<String, String> parameters) {
+		for (Map.Entry<String, String> item : parameters.entrySet()) {
+			if (INDEX.equals(item.getKey())) {
+				continue;
+			}
+			if (ENABLE.equals(item.getKey())) {
+				enable = Boolean.valueOf(item.getValue());
+				continue;
+			}
+			if (ACTION_CLASS.equals(item.getKey())) {
+				continue;
+			}
+			this.parameters.put(item.getKey(), item.getValue());
+		}
+	}
+
+	public NZXAction getAction() {
+		return action;
+	}
+
+	public void setAction(NZXAction action) {
+		this.action = action;
+	}
 
 }

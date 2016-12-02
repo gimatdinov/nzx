@@ -16,8 +16,8 @@ public class FTPUserConfig extends Config {
     public final String password;
     public final String folder;
 
-    public FTPUserConfig(JSONObject src, String route, Map<String, Config> routes) throws URISyntaxException {
-        super(src, route + "/" + src.getString(NAME), routes);
+    public FTPUserConfig(JSONObject src, String route, Map<String, Object> routes) throws URISyntaxException {
+        super(route + "/" + src.getString(NAME), routes);
         name = src.getString(NAME);
         password = src.getString(PASSWORD);
         folder = src.getString(FOLDER);

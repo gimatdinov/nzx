@@ -1,6 +1,5 @@
 package ru.otr.nzx.postprocessing;
 
-import java.lang.reflect.Constructor;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -14,45 +13,44 @@ import ru.otr.nzx.config.postprocessing.PostProcessorConfig;
 
 public class NZXPostProcessor extends PostProcessor<NZXTank> {
 
-    private final PostProcessorConfig config;
+	private final PostProcessorConfig config;
 
-    public NZXPostProcessor(PostProcessorConfig config, Tracer tracer) {
-        super(tracer);
-        this.config = config;
-    }
+	public NZXPostProcessor(PostProcessorConfig config, Tracer tracer) {
+		super(tracer);
+		this.config = config;
+	}
 
-    @SuppressWarnings("unchecked")
-    private static List<Action<NZXTank>> loadActions(List<ActionConfig> configs) {
-        try {
-            List<Action<NZXTank>> result = new ArrayList<>();
-            result.add(new Dumping());
-            for (ActionConfig cfg : configs) {
-                Class<?> actionClass = Class.forName(cfg.clazz);
-                Class<?>[] paramTypes = new Class[cfg.parameters.length];
-                for (int i = 0; i < paramTypes.length; i++) {
-                    paramTypes[i] = String.class;
-                }
-                Constructor<?> actionConstructor = actionClass.getConstructor(paramTypes);
-                result.add((Action<NZXTank>) actionConstructor.newInstance((Object[]) cfg.parameters));
-            }
-            return result;
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-    }
+	private static List<Action<NZXTank>> loadActions(List<ActionConfig> configs) {
+		try {
+			List<Action<NZXTank>> result = new ArrayList<>();
+			result.add(new Dumping());
+			for (ActionConfig cfg : configs) {
+				Class<?> actionClass = Class.forName(cfg.action_class);
+				NZXAction action = (NZXAction) actionClass.newInstance();
+				cfg.setAction(action);
+				action.setConfig(cfg);
+				cfg.getAction().loadParameters();
+				action.setEnable(cfg.enable);
+				result.add(action);
+			}
+			return result;
+		} catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+	}
 
-    public void bootstrap() {
-        super.init(config.workers, config.buffer_pool_size, config.buffer_size_min, loadActions(config.actions),
-                new ThreadFactoryBuilder().setNameFormat("nzx-PostProcessor-Worker-%d").build());
-    }
+	public void bootstrap() {
+		super.init(config.workers, config.buffer_pool_size, config.buffer_size_min, loadActions(config.actions),
+		        new ThreadFactoryBuilder().setNameFormat("nzx-PostProcessor-Worker-%d").build());
+	}
 
-    public boolean isDumpingEnable() {
-        for (Action<NZXTank> action : actions) {
-            if (action instanceof Dumping) {
-                return true;
-            }
-        }
-        return false;
-    }
+	public boolean isDumpingEnable() {
+		for (Action<NZXTank> action : actions) {
+			if (action instanceof Dumping) {
+				return true;
+			}
+		}
+		return false;
+	}
 
 }

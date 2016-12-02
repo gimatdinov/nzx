@@ -23,8 +23,8 @@ public class NZXConfig extends Config {
     public final FTPConfig ftp;
     public final HTTPConfig http;
 
-    public NZXConfig(JSONObject src, Map<String, Config> routes) throws URISyntaxException {
-        super(src, "/", routes);
+    public NZXConfig(JSONObject src, Map<String, Object> routes) throws URISyntaxException {
+        super("/", routes);
         name = src.optString(NAME, null);
         log_config = src.optString(LOG_CONFIG, null);
         log = src.optString(LOG, "log");
