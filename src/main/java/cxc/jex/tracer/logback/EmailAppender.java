@@ -28,8 +28,6 @@ public class EmailAppender extends AppenderBase<ILoggingEvent> {
 
     private ExecutorService executor;
 
-
-
     private String username;
     private String password;
     private String from;
@@ -50,7 +48,7 @@ public class EmailAppender extends AppenderBase<ILoggingEvent> {
         bodyLayout.setContext(context);
         bodyLayout.setPattern(body);
         bodyLayout.start();
-        
+
         evaluator = new OnMarkerEvaluator();
         evaluator.setContext(context);
         for (String item : markers.split(",")) {
@@ -106,7 +104,7 @@ public class EmailAppender extends AppenderBase<ILoggingEvent> {
             System.out.println("Appender[" + getName() + "] : " + ex.getMessage());
         }
     }
-    
+
     public boolean isStartTLS() {
         return startTLS;
     }

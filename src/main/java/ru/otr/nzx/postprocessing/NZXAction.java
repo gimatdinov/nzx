@@ -3,18 +3,21 @@ package ru.otr.nzx.postprocessing;
 import cxc.jex.postprocessing.Action;
 import ru.otr.nzx.config.postprocessing.ActionConfig;
 
-public abstract class NZXAction extends Action<NZXTank> {
+public abstract class NZXAction implements Action<NZXTank> {
 
-	protected ActionConfig config;
+    protected ActionConfig config;
 
-	public void setConfig(ActionConfig config) {
-		this.config = config;
-	}
+    public void setConfig(ActionConfig config) {
+        this.config = config;
+    }
 
-	public ActionConfig getConfig() {
-		return config;
-	}
+    public ActionConfig getConfig() {
+        return config;
+    }
 
-	public abstract void loadParameters();
+    @Override
+    public boolean isEnable() {
+        return config.enable;
+    }
 
 }

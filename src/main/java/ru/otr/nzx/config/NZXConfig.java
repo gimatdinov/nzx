@@ -1,7 +1,6 @@
 package ru.otr.nzx.config;
 
 import java.net.URISyntaxException;
-import java.util.Map;
 
 import org.json.JSONObject;
 
@@ -23,46 +22,46 @@ public class NZXConfig extends Config {
     public final FTPConfig ftp;
     public final HTTPConfig http;
 
-    public NZXConfig(JSONObject src, Map<String, Object> routes) throws URISyntaxException {
-        super("/", routes);
+    public NZXConfig(JSONObject src) throws URISyntaxException {
+        super("", null);
         name = src.optString(NAME, null);
         log_config = src.optString(LOG_CONFIG, null);
         log = src.optString(LOG, "log");
         config_service_port = src.optInt(CONFIG_SERVICE_PORT, 0);
         if (src.has(FTP)) {
-            ftp = new FTPConfig(src.getJSONObject(FTP), "/" + FTP, routes);
+            ftp = new FTPConfig(src.getJSONObject(FTP), FTP, this);
         } else {
             ftp = null;
         }
         if (src.has(HTTP)) {
-            http = new HTTPConfig(src.getJSONObject(HTTP), "/" + HTTP, routes);
+            http = new HTTPConfig(src.getJSONObject(HTTP), HTTP, this);
         } else {
             http = null;
         }
     }
 
     @Override
-    public JSONObject toJSON() {
-        JSONObject config = new JSONObject();
+    public Object toJSON() {
+        JSONObject json = new JSONObject();
         if (name != null) {
-            config.put(NAME, name);
+            json.put(NAME, name);
         }
         if (log_config != null) {
-            config.put(LOG_CONFIG, log_config);
+            json.put(LOG_CONFIG, log_config);
         }
         if (!"log".equals(log)) {
-            config.put(LOG, log);
+            json.put(LOG, log);
         }
         if (config_service_port > 0) {
-            config.put(CONFIG_SERVICE_PORT, config_service_port);
+            json.put(CONFIG_SERVICE_PORT, config_service_port);
         }
         if (ftp != null) {
-            config.put(FTP, ftp.toJSON());
+            json.put(FTP, ftp.toJSON());
         }
         if (http != null) {
-            config.put(HTTP, http.toJSON());
+            json.put(HTTP, http.toJSON());
         }
-        return config;
+        return json;
     }
 
     public String getName() {

@@ -28,7 +28,7 @@ public class NZX {
             cfgService.bootstrap();
         }
         if (cfgService.nzx().ftp != null) {
-            for (FTPServerConfig cfg : cfgService.nzx().ftp.servers) {
+            for (FTPServerConfig cfg : cfgService.nzx().ftp.servers.values()) {
                 if (cfg.enable) {
                     FTPServer ftpServer = new FTPServer(cfg, tracer);
                     ftpServer.bootstrap();
@@ -37,7 +37,7 @@ public class NZX {
             }
         }
         if (cfgService.nzx().http != null) {
-            for (final HTTPServerConfig cfg : cfgService.nzx().http.servers) {
+            for (final HTTPServerConfig cfg : cfgService.nzx().http.servers.values()) {
                 if (cfg.enable) {
                     HTTPServer httpServer = new HTTPServer(cfg, tracer);
                     httpServer.bootstrap();
