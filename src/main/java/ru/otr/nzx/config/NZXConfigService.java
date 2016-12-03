@@ -60,7 +60,7 @@ public class NZXConfigService {
             loadLogConfig(nzxConfig.getParentFile().getPath() + File.separator + nzx.log_config, nzx.log);
         }
         tracer.debug("Config.Loaded", nzx.toString());
-        tracer.debug("Config.Context", nzx.getContext().toString());
+        tracer.debug("Config.Context", nzx.getContext().keySet().toString());
     }
 
     public NZXConfig nzx() {
