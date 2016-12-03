@@ -56,36 +56,39 @@ public class ConfigLocation extends HttpFiltersAdapter {
         if (httpObject instanceof HttpRequest) {
             HttpRequest request = (HttpRequest) httpObject;
             Config node = cfgService.getContext().get(cfgURI.getPath());
+            List<NameValuePair> params = URLEncodedUtils.parse(cfgURI, "UTF-8");
             if (node != null) {
                 tracer.trace(request.getMethod().toString(), cfgURI.getPath());
                 if (HttpMethod.PUT.equals(request.getMethod())) {
                     try {
                         if (node instanceof LocationConfig) {
-                            return put((LocationConfig) node, URLEncodedUtils.parse(cfgURI, "UTF-8"));
+                            return updateLocation((LocationConfig) node, params);
                         }
                         if (node instanceof ActionConfig) {
-                            return put((ActionConfig) node, URLEncodedUtils.parse(cfgURI, "UTF-8"));
+                            return updateAction((ActionConfig) node, params);
                         }
                         if (node instanceof LocationConfigMap) {
-                            return put((LocationConfigMap) node, URLEncodedUtils.parse(cfgURI, "UTF-8"));
+                            return createLocation((LocationConfigMap) node, params);
                         }
                         if (node instanceof HeadersConfigMap) {
-                            return put((HeadersConfigMap) node, URLEncodedUtils.parse(cfgURI, "UTF-8"));
+                            return updateLocationHeaders((HeadersConfigMap) node, params);
                         }
                     } catch (Exception e) {
-                        return NZXUtil.makeSimpleResponse(e.getMessage(), "text/plain", 400, HttpVersion.HTTP_1_1);
+                        tracer.error("Config.PUT.Error", cfgURI.toString(), e);
+                        return NZXUtil.makeSimpleResponse(e.getMessage(), "text/plain", 500, HttpVersion.HTTP_1_1);
                     }
                 }
                 if (HttpMethod.DELETE.equals(request.getMethod())) {
                     try {
                         if (node instanceof LocationConfig) {
-                            return delete((LocationConfig) node);
+                            return deleteLocation((LocationConfig) node);
                         }
                         if (node instanceof HeadersConfigMap) {
-                            return delete((HeadersConfigMap) node);
+                            return deleteLocationHeaders((HeadersConfigMap) node);
                         }
                     } catch (Exception e) {
-                        return NZXUtil.makeSimpleResponse(e.getMessage(), "text/plain", 400, HttpVersion.HTTP_1_1);
+                        tracer.error("Config.DELETE.Error", cfgURI.toString(), e);
+                        return NZXUtil.makeSimpleResponse(e.getMessage(), "text/plain", 500, HttpVersion.HTTP_1_1);
                     }
                 }
                 return NZXUtil.configToHttpResponse(node);
@@ -94,7 +97,7 @@ public class ConfigLocation extends HttpFiltersAdapter {
         return NZXUtil.makeSimpleResponse("non existent", "text/plain", 404, HttpVersion.HTTP_1_1);
     }
 
-    private FullHttpResponse put(LocationConfig node, List<NameValuePair> params) throws URISyntaxException {
+    private FullHttpResponse updateLocation(LocationConfig node, List<NameValuePair> params) throws URISyntaxException {
         synchronized (node) {
             for (NameValuePair item : params) {
                 if (item.getName().equals(LocationConfig.ENABLE)) {
@@ -108,22 +111,24 @@ public class ConfigLocation extends HttpFiltersAdapter {
                     node.type = LocationType.PROXY_PASS;
                 }
             }
+            tracer.info("Config.Location.Update", node.getPathName() + "=" + node.toString());
             return NZXUtil.configToHttpResponse(node);
         }
     }
 
-    private FullHttpResponse put(ActionConfig node, List<NameValuePair> params) throws URISyntaxException {
+    private FullHttpResponse updateAction(ActionConfig node, List<NameValuePair> params) throws URISyntaxException {
         synchronized (node) {
             Map<String, String> parameters = new HashMap<>();
             for (NameValuePair item : params) {
                 parameters.put(item.getName(), item.getValue());
             }
             node.setParameters(parameters);
+            tracer.info("Config.Action.Update", node.getPathName() + "=" + node.toString());
             return NZXUtil.configToHttpResponse(node);
         }
     }
 
-    private FullHttpResponse put(LocationConfigMap node, List<NameValuePair> params) throws URISyntaxException {
+    private FullHttpResponse createLocation(LocationConfigMap node, List<NameValuePair> params) throws URISyntaxException {
         synchronized (node) {
             String path = null;
             for (NameValuePair item : params) {
@@ -134,27 +139,31 @@ public class ConfigLocation extends HttpFiltersAdapter {
             if (path == null || path.length() == 0) {
                 throw new IllegalArgumentException("path cannot be empty!");
             }
-            new LocationConfig(path, node);
+            LocationConfig loc = new LocationConfig(path, node);
+            tracer.info("Config.Location.Create", loc.getPathName() + "=" + loc.toString());
             return NZXUtil.configToHttpResponse(node);
         }
     }
 
-    private HttpResponse put(HeadersConfigMap node, List<NameValuePair> params) {
+    private HttpResponse updateLocationHeaders(HeadersConfigMap node, List<NameValuePair> params) {
         synchronized (node) {
             for (NameValuePair item : params) {
                 node.put(item.getName(), item.getValue());
             }
+            tracer.info("Config.Location.Headers.Update", node.getPathName() + "=" + node.toString());
             return NZXUtil.configToHttpResponse(node);
         }
     }
 
-    private FullHttpResponse delete(LocationConfig node) {
+    private FullHttpResponse deleteLocation(LocationConfig node) {
         node.delete();
+        tracer.info("Config.Location.Delete", node.getPathName() + "=" + node.toString());
         return NZXUtil.makeSimpleResponse("location deleted", "text/plain", 200, HttpVersion.HTTP_1_1);
     }
 
-    private HttpResponse delete(HeadersConfigMap node) {
+    private HttpResponse deleteLocationHeaders(HeadersConfigMap node) {
         node.clear();
-        return NZXUtil.makeSimpleResponse("headers deleted", "text/plain", 200, HttpVersion.HTTP_1_1);
+        tracer.info("Config.Location.Headers.Delete", node.getPathName() + "=" + node.toString());
+        return NZXUtil.makeSimpleResponse("location headers deleted", "text/plain", 200, HttpVersion.HTTP_1_1);
     }
 }
