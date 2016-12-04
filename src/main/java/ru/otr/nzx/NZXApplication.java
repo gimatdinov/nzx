@@ -1,7 +1,6 @@
 package ru.otr.nzx;
 
 import java.io.File;
-import java.net.InetAddress;
 
 import javax.annotation.PreDestroy;
 
@@ -55,11 +54,9 @@ public class NZXApplication implements CommandLineRunner {
             }
             Tracer tracer = new LogbackTracer("NZX");
             NZXConfigService cfgService = new NZXConfigService(configFile, tracer);
-            String serverName = (cfgService.nzx().getName() != null) ? cfgService.nzx().getName() : InetAddress.getLocalHost().getHostName();
             if (cmdLine.getOptionValue(OPTION_NAME) != null) {
-                serverName = cmdLine.getOptionValue(OPTION_NAME);
-            }
-            cfgService.nzx().setName(serverName);
+                cfgService.nzx().setName(cmdLine.getOptionValue(OPTION_NAME));
+            }            
             nzx = new NZX(cfgService, tracer);
             nzx.bootstrap();
             nzx.start();

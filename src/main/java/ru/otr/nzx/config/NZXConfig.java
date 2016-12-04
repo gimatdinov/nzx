@@ -1,6 +1,8 @@
 package ru.otr.nzx.config;
 
+import java.net.InetAddress;
 import java.net.URISyntaxException;
+import java.net.UnknownHostException;
 
 import org.json.JSONObject;
 
@@ -22,9 +24,9 @@ public class NZXConfig extends Config {
     public final FTPConfig ftp;
     public final HTTPConfig http;
 
-    public NZXConfig(JSONObject src) throws URISyntaxException {
+    public NZXConfig(JSONObject src) throws URISyntaxException, UnknownHostException {
         super("", null);
-        name = src.optString(NAME, null);
+        name = src.optString(NAME, InetAddress.getLocalHost().getHostName());
         log_config = src.optString(LOG_CONFIG, null);
         log = src.optString(LOG, "log");
         config_service_port = src.optInt(CONFIG_SERVICE_PORT, 0);
