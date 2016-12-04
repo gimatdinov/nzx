@@ -4,6 +4,7 @@ HTTP proxy, based on LittleProxy (https://github.com/adamfisk/LittleProxy), conf
 ##Features
 * Java (LittleProxy) based
 * Configuration like nginx
+* REST service to test/debug config
 * E-mail notification about errors
 * Extensible postprocessing for request and response 
  * Dumping
@@ -11,7 +12,7 @@ HTTP proxy, based on LittleProxy (https://github.com/adamfisk/LittleProxy), conf
  * Fail HTTP response processing with e-mail notification
 * Proxy pass HTTP-to-HTTPS (unusual rare need) 
 * Built-in FTP server (to view dumps) 
-* REST service to test/debug config
+
 
 ##Build
 ``mvn package``
