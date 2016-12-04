@@ -11,7 +11,7 @@ HTTP proxy, based on LittleProxy (https://github.com/adamfisk/LittleProxy), conf
  * Fail HTTP response processing with e-mail notification
 * Proxy pass HTTP-to-HTTPS (unusual rare need) 
 * Built-in FTP server (to view dumps) 
-* REST service for test/debug config
+* REST service to test/debug config
 
 ##Build
 ``mvn package``
