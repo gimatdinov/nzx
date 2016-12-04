@@ -51,6 +51,9 @@ public class Location<Config extends LocationConfig> extends HttpFiltersAdapter 
         HttpVersion httpVersion = HttpVersion.HTTP_1_1;
         if (httpObject instanceof HttpRequest) {
             httpVersion = ((HttpRequest) httpObject).getProtocolVersion();
+            if (config.post_processing_enable) {
+                putToPostProcessor(httpObject);
+            }
         }
         FullHttpResponse response = new DefaultFullHttpResponse(httpVersion, HttpResponseStatus.NO_CONTENT);
         HttpHeaders.setHeader(response, Names.CONNECTION, Values.CLOSE);
