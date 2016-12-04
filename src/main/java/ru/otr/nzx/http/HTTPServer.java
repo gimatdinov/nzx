@@ -81,7 +81,7 @@ public class HTTPServer {
         if (postProcessor != null) {
             postProcessor.stop();
         }
-        tracer.info("Stoped", "");
+        tracer.info("Stopped", "");
     }
 
 }

@@ -4,9 +4,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 import cxc.jex.tracer.Tracer;
-import ru.otr.nzx.config.NZXConfigService;
 import ru.otr.nzx.config.ftp.FTPServerConfig;
 import ru.otr.nzx.config.http.HTTPServerConfig;
+import ru.otr.nzx.config.service.NZXConfigService;
 import ru.otr.nzx.ftp.FTPServer;
 import ru.otr.nzx.http.HTTPServer;
 
@@ -74,7 +74,7 @@ public class NZX {
         if (cfgService.nzx().config_service_port > 0) {
             cfgService.stop();
         }
-        tracer.info("Stoped/NOTIFY_ADMIN", "");
+        tracer.info("Stopped/NOTIFY_ADMIN", "");
     }
 
 }

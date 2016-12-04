@@ -53,7 +53,7 @@ public abstract class PostProcessor<T extends Tank> {
             item.signal();
         }
         executor.shutdown();
-        tracer.info("Stoped", "");
+        tracer.info("Stopped", "");
     }
 
     public void attachBuffer(T tank, int capacity) {

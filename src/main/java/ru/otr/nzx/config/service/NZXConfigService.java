@@ -1,9 +1,10 @@
-package ru.otr.nzx.config;
+package ru.otr.nzx.config.service;
 
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.util.Date;
@@ -24,6 +25,13 @@ import ch.qos.logback.core.util.StatusPrinter;
 import cxc.jex.tracer.Tracer;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.http.HttpRequest;
+import ru.otr.nzx.config.Config;
+import ru.otr.nzx.config.NZXConfig;
+import ru.otr.nzx.config.http.location.HeadersConfigMap;
+import ru.otr.nzx.config.http.location.LocationConfig;
+import ru.otr.nzx.config.http.location.LocationConfigMap;
+import ru.otr.nzx.config.http.location.LocationConfig.LocationType;
+import ru.otr.nzx.config.postprocessing.ActionConfig;
 import ru.otr.nzx.util.NZXUtil;
 
 public class NZXConfigService {
@@ -41,9 +49,9 @@ public class NZXConfigService {
     public NZXConfigService(File nzxConfig, Tracer tracer) throws URISyntaxException, IOException {
         this.tracer = tracer.getSubtracer(SERVICE_NAME);
         if (nzxConfig.exists()) {
-            tracer.info("Config.File", nzxConfig.getPath());
+            tracer.info("Main.Config.File", nzxConfig.getPath());
         } else {
-            tracer.error("Config.File.NotFound", nzxConfig.getPath());
+            tracer.error("Main.Config.File.NotFound", nzxConfig.getPath());
             throw new FileNotFoundException(nzxConfig.getPath());
         }
 
@@ -59,8 +67,8 @@ public class NZXConfigService {
         if (nzx.log_config != null) {
             loadLogConfig(nzxConfig.getParentFile().getPath() + File.separator + nzx.log_config, nzx.log);
         }
-        tracer.debug("Config.Loaded", nzx.toString());
-        tracer.debug("Config.Context", nzx.getContext().keySet().toString());
+        tracer.debug("Main.Config.Loaded", nzx.toString());
+        tracer.debug("Context", nzx.getContext().keySet().toString());
     }
 
     public NZXConfig nzx() {
@@ -107,7 +115,61 @@ public class NZXConfigService {
 
     public void stop() {
         srv.stop();
-        tracer.info("Stoped", "");
+        tracer.info("Stopped", "");
+    }
+
+    public LocationConfig updateLocation(LocationConfig node, Map<String, String> parameters) throws URISyntaxException {
+        synchronized (node) {
+            if (parameters.containsKey(LocationConfig.ENABLE)) {
+                node.enable = Boolean.valueOf(parameters.get(LocationConfig.ENABLE));
+            }
+            if (parameters.containsKey(LocationConfig.PROXY_PASS)) {
+                node.proxy_pass = new URI(parameters.get(LocationConfig.PROXY_PASS));
+                node.type = LocationType.PROXY_PASS;
+            }
+            tracer.info("Location.Config.Update", node.getPathName() + "=" + node.toString());
+            return node;
+        }
+    }
+
+    public ActionConfig updateAction(ActionConfig node, Map<String, String> parameters) throws URISyntaxException {
+        synchronized (node) {
+            node.setParameters(parameters);
+            tracer.info("Action.Config.Update", node.getPathName() + "=" + node.toString());
+            return node;
+        }
+    }
+
+    public LocationConfigMap createLocation(LocationConfigMap node, Map<String, String> parameters) throws URISyntaxException {
+        synchronized (node) {
+            String path = parameters.get(LocationConfig.PATH);
+            if (path == null || path.length() == 0) {
+                throw new IllegalArgumentException("path cannot be empty!");
+            }
+            new URI(path);
+            LocationConfig loc = new LocationConfig(path, node);
+            tracer.info("Location.Config.Create", loc.getPathName() + "=" + loc.toString());
+            return node;
+        }
+    }
+
+    public HeadersConfigMap updateLocationHeaders(HeadersConfigMap node, Map<String, String> parameters) {
+        synchronized (node) {
+            node.putAll(parameters);
+            tracer.info("Location.Headers.Config.Update", node.getPathName() + "=" + node.toString());
+            return node;
+        }
+    }
+
+    public void deleteLocation(LocationConfig node) {
+        node.delete();
+        tracer.info("Location.Config.Delete", node.getPathName() + "=" + node.toString());
+    }
+
+    public HeadersConfigMap deleteLocationHeaders(HeadersConfigMap node) {
+        node.clear();
+        tracer.info("Location.Headers.Config.Delete", node.getPathName() + "=" + node.toString());
+        return node;
     }
 
 }

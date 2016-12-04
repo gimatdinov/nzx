@@ -28,7 +28,6 @@ public class ProxyPassLocation extends Location<LocationConfig> {
     public ProxyPassLocation(HttpRequest originalRequest, ChannelHandlerContext ctx, Date requestDateTime, String requestID, URI requestURI,
             LocationConfig config, PostProcessor<NZXTank> postProcessor, Tracer tracer) {
         super(originalRequest, ctx, requestDateTime, requestID, requestURI, config, postProcessor, tracer);
-
         try {
             this.passURI = makePassURI(requestURI, config);
         } catch (URISyntaxException e) {
@@ -47,7 +46,7 @@ public class ProxyPassLocation extends Location<LocationConfig> {
         if (httpObject instanceof HttpRequest) {
             HttpRequest request = (HttpRequest) httpObject;
             request.setUri(passURI.toString());
-            HttpHeaders.setHeader(request, Names.HOST, NZXUtil.extractHeaderHost(passURI));
+            HttpHeaders.setHeader(request, Names.HOST, NZXUtil.extractHostAndPort(passURI));
             if (config.proxy_set_headers.size() > 0) {
                 tracer.debug("Proxy.Request.SetHeaders", "headers=" + config.proxy_set_headers);
                 for (Map.Entry<String, String> item : config.proxy_set_headers.entrySet()) {
@@ -68,9 +67,7 @@ public class ProxyPassLocation extends Location<LocationConfig> {
                     response = NZXUtil.makeFailureResponse(500, request.getProtocolVersion());
                     tracer.error("Server.Connection.Failed/PROXY_PASS_ERROR", "MITM", e);
                 }
-
             }
-
         }
         return response;
     }

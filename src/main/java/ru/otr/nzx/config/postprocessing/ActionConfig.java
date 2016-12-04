@@ -41,13 +41,20 @@ public class ActionConfig extends Config {
         json.put(ENABLE, enable);
         json.put(ACTION_CLASS, action_class);
         for (Map.Entry<String, String> item : parameters.entrySet()) {
-            json.put(item.getKey(), item.getValue());
+            if (item.getValue() == null || item.getValue().length() == 0) {
+                json.remove(item.getKey());
+            } else {
+                json.put(item.getKey(), item.getValue());
+            }
         }
         return json;
     }
 
     public void setParameters(Map<String, String> parameters) {
         for (Map.Entry<String, String> item : parameters.entrySet()) {
+            if (item.getKey() == null) {
+                continue;
+            }
             if (NAME.equals(item.getKey())) {
                 continue;
             }

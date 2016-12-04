@@ -19,11 +19,17 @@ public class FailHttpResponseProcessing extends NZXAction {
     @Override
     public void process(NZXTank tank, Tracer tracer) {
         if (getConfig().parametersUpdatedMark) {
-            this.marker = getConfig().parameters.get(MARKER);
-            this.sc_400 = new Boolean(getConfig().parameters.get(SC_400));
-            this.sc_500 = new Boolean(getConfig().parameters.get(SC_500));
-            this.not_success = new Boolean(getConfig().parameters.get(NOT_SUCCESS));
-            getConfig().parametersUpdatedMark = false;
+            try {
+                synchronized (this) {
+                    this.marker = getConfig().parameters.get(MARKER);
+                    this.sc_400 = new Boolean(getConfig().parameters.get(SC_400));
+                    this.sc_500 = new Boolean(getConfig().parameters.get(SC_500));
+                    this.not_success = new Boolean(getConfig().parameters.get(NOT_SUCCESS));
+                    getConfig().parametersUpdatedMark = false;
+                }
+            } catch (Exception e) {
+                tracer.error("FailHttpResponseProcessing.UpdateParameters.Error/NOTIFY_ADMIN", NZXUtil.tankToShortLine(tank), e);
+            }
         }
         if (tank.type == ObjectType.RES) {
             boolean flag = false;
@@ -37,7 +43,7 @@ public class FailHttpResponseProcessing extends NZXAction {
                 flag = true;
             }
             if (flag) {
-                tracer.info("Response.StatusCode." + tank.responseStatusCode + "/" + marker, NZXUtil.tankToShortLine(tank));
+                tracer.info("FailHttpResponseProcessing/" + marker, NZXUtil.tankToShortLine(tank));
             }
         }
     }

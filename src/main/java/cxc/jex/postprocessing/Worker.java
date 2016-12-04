@@ -15,7 +15,7 @@ class Worker<T extends Tank> implements Runnable {
 
     @Override
     public void run() {
-        postProcessor.getTracer().info("Worker.Starting", "");
+        postProcessor.getTracer().info("Worker.Running", "");
         while (postProcessor.started) {
             lock.lock();
             T tank = postProcessor.loadedTanks.poll();
@@ -23,7 +23,11 @@ class Worker<T extends Tank> implements Runnable {
                 if (tank != null) {
                     for (Action<T> action : postProcessor.actions) {
                         if (action.isEnable()) {
-                            action.process(tank, postProcessor.getTracer());
+                            try {
+                                action.process(tank, postProcessor.getTracer());
+                            } catch (Exception e) {
+                                postProcessor.getTracer().error("Action.Error/NOTIFY_ADMIN", action.getClass().getName(), e);
+                            }
                         }
                     }
                 } else {
@@ -38,7 +42,7 @@ class Worker<T extends Tank> implements Runnable {
                 lock.unlock();
             }
         }
-        postProcessor.getTracer().info("Worker.Stoped", "");
+        postProcessor.getTracer().info("Worker.Stopped", "");
     }
 
     public void signal() {

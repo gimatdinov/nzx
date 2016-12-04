@@ -18,7 +18,6 @@ import io.netty.handler.codec.http.HttpVersion;
 import io.netty.handler.codec.http.HttpHeaders.Names;
 import io.netty.handler.codec.http.HttpHeaders.Values;
 import ru.otr.nzx.NZXConstants;
-import ru.otr.nzx.config.Config;
 import ru.otr.nzx.http.HTTPServer.ObjectType;
 import ru.otr.nzx.postprocessing.NZXTank;
 
@@ -107,12 +106,10 @@ public class NZXUtil {
         return response;
     }
 
-    public static String extractHeaderHost(URI uri) {
+    public static String extractHostAndPort(URI uri) {
         return uri.getHost() + ((uri.getPort() < 0) ? "" : ":" + uri.getPort());
     }
 
-    public static FullHttpResponse configToHttpResponse(Config cfg) {
-        return NZXUtil.makeSimpleResponse(cfg.toString(4), "application/json; charset=UTF-8", 200, HttpVersion.HTTP_1_1);
-    }
+
 
 }

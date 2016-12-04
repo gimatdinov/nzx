@@ -24,7 +24,7 @@ public abstract class FTPServer {
         DataConnectionConfigurationFactory dcConfigFactory = new DataConnectionConfigurationFactory();
         dcConfigFactory.setActiveEnabled(activeEnable);
         if (passivePorts != null) {
-            tracer.info("Set.PassivePorts", passivePorts);
+            tracer.info("PassivePorts", passivePorts);
             dcConfigFactory.setPassivePorts(passivePorts);
         }
         FTPListener ftpListener = new FTPListener(host, port, dcConfigFactory.createDataConnectionConfiguration(), false);
@@ -39,13 +39,13 @@ public abstract class FTPServer {
         try {
             srv.start();
         } catch (FtpException e) {
-            tracer.error("Start.Error", e.getMessage(), e);
+            tracer.error("Starting.Error", e.getMessage(), e);
         }
     }
 
     public void stop() {
         srv.stop();
-        tracer.info("Stoped", "");
+        tracer.info("Stopped", "");
     }
 
 }

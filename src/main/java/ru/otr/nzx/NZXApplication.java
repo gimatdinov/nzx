@@ -20,7 +20,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 import cxc.jex.tracer.Tracer;
 import cxc.jex.tracer.logback.LogbackTracer;
-import ru.otr.nzx.config.NZXConfigService;
+import ru.otr.nzx.config.service.NZXConfigService;
 
 @SpringBootApplication
 public class NZXApplication implements CommandLineRunner {

@@ -21,15 +21,19 @@ public class Matching extends NZXAction {
     private String content_regex;
 
     @Override
-    public void process(NZXTank tank, Tracer tracer) {
+    public void process(NZXTank tank, Tracer tracer) throws Exception {
         if (getConfig().parametersUpdatedMark) {
-            synchronized (this) {
-                this.marker = getConfig().parameters.get(MARKER);
-                this.object_type = ObjectType.valueOf(getConfig().parameters.get(OBJECT_TYPE));
-                this.сontent_length_max = Integer.valueOf(getConfig().parameters.get(CONTENT_LENGTH_MAX));
-                this.uri_regex = getConfig().parameters.get(URI_REGEX);
-                this.content_regex = getConfig().parameters.get(CONTENT_REGEX);
-                getConfig().parametersUpdatedMark = false;
+            try {
+                synchronized (this) {
+                    this.marker = getConfig().parameters.get(MARKER);
+                    this.object_type = ObjectType.valueOf(getConfig().parameters.get(OBJECT_TYPE));
+                    this.сontent_length_max = Integer.valueOf(getConfig().parameters.get(CONTENT_LENGTH_MAX));
+                    this.uri_regex = getConfig().parameters.get(URI_REGEX);
+                    this.content_regex = getConfig().parameters.get(CONTENT_REGEX);
+                    getConfig().parametersUpdatedMark = false;
+                }
+            } catch (Exception e) {
+                tracer.error("Matching.UpdateParameters.Error/NOTIFY_ADMIN", NZXUtil.tankToShortLine(tank), e);
             }
         }
         if (tank.type == object_type && tank.getBuffer().getContentLength() > 0 && tank.getBuffer().getContentLength() <= сontent_length_max) {
@@ -37,11 +41,8 @@ public class Matching extends NZXAction {
                 tank.getBuffer().read(baos);
                 String content = baos.toString();
                 if (uri_regex.matches(tank.requestURI.toString()) && content.matches(content_regex)) {
-                    tracer.info("Matching." + marker + "/" + marker, NZXUtil.tankToShortLine(tank));
+                    tracer.info("Matching/" + marker, NZXUtil.tankToShortLine(tank));
                 }
-
-            } catch (Exception e) {
-                tracer.error("Matching." + marker + ".Error/" + marker, NZXUtil.tankToShortLine(tank), e);
             } finally {
             }
         }

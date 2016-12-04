@@ -24,7 +24,6 @@ public class LocationConfig extends Config {
     public final static String MIME_TYPE = "mime_type";
 
     public LocationType type;
-    public int index;
     public final String path;
     public boolean enable;
     public boolean post_processing_enable;
@@ -60,7 +59,7 @@ public class LocationConfig extends Config {
         proxy_set_headers = new HeadersConfigMap(src.optJSONArray(PROXY_SET_HEADERS), PROXY_SET_HEADERS, this);
 
         if (src.has(FILE)) {
-            if (type != null) {
+            if (type == LocationType.PROXY_PASS) {
                 throw new IllegalArgumentException("Incompatible {" + PROXY_PASS + ", " + FILE + "}");
             }
             type = LocationType.FILE;
@@ -86,12 +85,12 @@ public class LocationConfig extends Config {
         json.put(POST_PROCESSING_ENABLE, post_processing_enable);
         json.put(DUMP_CONTENT_STORE, dump_content_store);
 
-        if (proxy_pass != null) {
+        if (type == LocationType.PROXY_PASS) {
             json.put(PROXY_PASS, proxy_pass);
             json.put(PROXY_SET_HEADERS, proxy_set_headers.toJSON());
         }
 
-        if (file != null) {
+        if (type == LocationType.FILE) {
             json.put(FILE, file);
             json.put(MIME_TYPE, mimeType);
         }

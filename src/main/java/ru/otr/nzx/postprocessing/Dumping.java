@@ -2,6 +2,7 @@ package ru.otr.nzx.postprocessing;
 
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 
@@ -14,7 +15,7 @@ public class Dumping implements Action<NZXTank> {
     private static final DateFormat dayDateFormat = new SimpleDateFormat("yyyy-MM-dd");
 
     @Override
-    public void process(NZXTank tank, Tracer tracer) {
+    public void process(NZXTank tank, Tracer tracer) throws Exception {
         if (tank.getBuffer().getContentLength() > 0) {
             String dump_content_store = tank.properties.get(LocationConfig.DUMP_CONTENT_STORE);
             if (dump_content_store != null) {
@@ -39,7 +40,7 @@ public class Dumping implements Action<NZXTank> {
 
                 try (FileOutputStream fos = new FileOutputStream(path.toString())) {
                     tank.getBuffer().read(fos);
-                } catch (Exception e) {
+                } catch (IllegalAccessException | IOException e) {
                     tracer.error("Dumping.Error/NOTIFY_ADMIN", "file=[" + path + "]", e);
                 } finally {
                 }
