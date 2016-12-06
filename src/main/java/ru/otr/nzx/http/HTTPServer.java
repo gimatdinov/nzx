@@ -24,7 +24,7 @@ public class HTTPServer {
     private NZXPostProcessor postProcessor;
 
     public HTTPServer(HTTPServerConfig config, Tracer tracer) {
-        this.tracer = tracer.getSubtracer(config.name);
+        this.tracer = tracer.getSubtracer(config.getName());
         this.config = config;
     }
 
@@ -50,7 +50,7 @@ public class HTTPServer {
             }
         }
 
-        srvBootstrap = DefaultHttpProxyServer.bootstrap().withName(config.name).withAddress(new InetSocketAddress(config.listenHost, config.listenPort));
+        srvBootstrap = DefaultHttpProxyServer.bootstrap().withName(config.getName()).withAddress(new InetSocketAddress(config.listenHost, config.listenPort));
         if (config.connect_timeout > 0) {
             srvBootstrap.withConnectTimeout(config.connect_timeout);
         }

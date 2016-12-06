@@ -19,7 +19,7 @@ public class LocationConfigMap extends Config implements Map<String, LocationCon
         super(name, host);
         if (src != null) {
             for (int i = 0; i < src.length(); i++) {
-                LocationConfig item = new LocationConfig(src.getJSONObject(i), String.valueOf(getCounter()), this);
+                LocationConfig item = new LocationConfig(src.getJSONObject(i), this);
                 map.put(item.path, item);
             }
         }

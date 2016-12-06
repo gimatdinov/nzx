@@ -15,7 +15,7 @@ public class FTPUserConfigMap extends ConfigMap<FTPUserConfig> {
     }
 
     @Override
-    protected FTPUserConfig makeItem(JSONObject src, String name) throws URISyntaxException {
+    protected FTPUserConfig makeItem(JSONObject src) throws URISyntaxException {
         return new FTPUserConfig(src, this);
     }
 

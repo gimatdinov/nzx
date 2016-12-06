@@ -25,7 +25,6 @@ public class HTTPServerConfig extends Config {
     public final static String POST_PROCESSING = "post_processing";
 
     public final boolean enable;
-    public final String name;
     public final String listenHost;
     public final int listenPort;
 
@@ -45,7 +44,6 @@ public class HTTPServerConfig extends Config {
     public HTTPServerConfig(JSONObject src, HTTPServerConfigMap servers) throws URISyntaxException {
         super(src.getString(NAME), servers);
         enable = src.optBoolean(ENABLE, true);
-        name = src.getString(NAME);
         String[] listen = src.getString(LISTEN).split(":");
         listenHost = listen[0];
         listenPort = Integer.valueOf(listen[1]);

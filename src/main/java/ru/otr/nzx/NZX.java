@@ -18,7 +18,7 @@ public class NZX {
     private List<HTTPServer> httpServers = new ArrayList<>();
 
     public NZX(NZXConfigService cfgService, Tracer tracer) {
-        this.tracer = tracer.getSubtracer(cfgService.nzx().getName());
+        this.tracer = tracer.getSubtracer(cfgService.nzx().getServerName());
         this.cfgService = cfgService;
     }
 

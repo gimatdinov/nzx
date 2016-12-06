@@ -15,7 +15,7 @@ public class HTTPServerConfigMap extends ConfigMap<HTTPServerConfig> {
     }
 
     @Override
-    protected HTTPServerConfig makeItem(JSONObject src, String name) throws URISyntaxException {
+    protected HTTPServerConfig makeItem(JSONObject src) throws URISyntaxException {
         return new HTTPServerConfig(src, this);
     }
 

@@ -19,8 +19,8 @@ public class ActionConfig extends Config {
     public final Map<String, String> parameters = new HashMap<>();
     public boolean parametersUpdatedMark = true;
 
-    public ActionConfig(JSONObject src, String name, ActionConfigMap actions) throws URISyntaxException {
-        super(name, actions);
+    public ActionConfig(JSONObject src, ActionConfigMap actions) throws URISyntaxException {
+        super(src.getString(NAME), actions);
         enable = src.optBoolean(ENABLE, true);
         action_class = src.getString(ACTION_CLASS);
         for (Object key : src.keySet()) {

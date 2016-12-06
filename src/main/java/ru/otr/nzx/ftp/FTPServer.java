@@ -7,7 +7,7 @@ public class FTPServer extends cxc.jex.ftp.server.FTPServer {
     private FTPServerConfig config;
 
     public FTPServer(FTPServerConfig config, Tracer tracer) {
-        super(tracer.getSubtracer(config.name));
+        super(tracer.getSubtracer(config.getName()));
         this.config = config;
     }
 

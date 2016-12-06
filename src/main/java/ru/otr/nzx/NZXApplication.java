@@ -25,7 +25,7 @@ import ru.otr.nzx.config.service.NZXConfigService;
 public class NZXApplication implements CommandLineRunner {
     private static Logger log = LoggerFactory.getLogger(NZXApplication.class);
 
-    public final static String OPTION_NAME = "name";
+    public final static String OPTION_SERVER_NAME = "name";
     public final static String OPTION_CONFIG = "config";
 
     private NZX nzx;
@@ -40,7 +40,7 @@ public class NZXApplication implements CommandLineRunner {
     @Override
     public void run(String... args) {
         Options options = new Options();
-        Option nameOption = Option.builder("n").longOpt(OPTION_NAME).required(false).numberOfArgs(1).desc("Server name").build();
+        Option nameOption = Option.builder("n").longOpt(OPTION_SERVER_NAME).required(false).numberOfArgs(1).desc("Server name").build();
         Option configOption = Option.builder("c").longOpt(OPTION_CONFIG).required(false).numberOfArgs(1).desc("Path to configuration file").build();
         options.addOption(nameOption);
         options.addOption(configOption);
@@ -54,8 +54,8 @@ public class NZXApplication implements CommandLineRunner {
             }
             Tracer tracer = new LogbackTracer("NZX");
             NZXConfigService cfgService = new NZXConfigService(configFile, tracer);
-            if (cmdLine.getOptionValue(OPTION_NAME) != null) {
-                cfgService.nzx().setName(cmdLine.getOptionValue(OPTION_NAME));
+            if (cmdLine.getOptionValue(OPTION_SERVER_NAME) != null) {
+                cfgService.nzx().setServerName(cmdLine.getOptionValue(OPTION_SERVER_NAME));
             }            
             nzx = new NZX(cfgService, tracer);
             nzx.bootstrap();

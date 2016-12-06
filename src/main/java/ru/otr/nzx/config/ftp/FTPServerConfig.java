@@ -15,7 +15,6 @@ public class FTPServerConfig extends Config {
     public final static String USERS = "users";
 
     public final boolean enable;
-    public final String name;
     public final String listenHost;
     public final int listenPort;
 
@@ -34,7 +33,6 @@ public class FTPServerConfig extends Config {
     public FTPServerConfig(JSONObject src, FTPServerConfigMap servers) throws URISyntaxException {
         super(src.getString(NAME), servers);
         enable = src.optBoolean(ENABLE, true);
-        name = src.getString(NAME);
         String[] listen = src.getString(LISTEN).split(":");
         listenHost = listen[0];
         listenPort = Integer.valueOf(listen[1]);

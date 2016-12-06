@@ -15,8 +15,8 @@ public class ActionConfigMap extends ConfigMap<ActionConfig> {
     }
 
     @Override
-    protected ActionConfig makeItem(JSONObject src, String name) throws URISyntaxException {
-        return new ActionConfig(src, name, this);
+    protected ActionConfig makeItem(JSONObject src) throws URISyntaxException {
+        return new ActionConfig(src, this);
     }
 
 }

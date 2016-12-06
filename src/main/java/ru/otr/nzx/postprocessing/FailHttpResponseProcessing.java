@@ -28,7 +28,7 @@ public class FailHttpResponseProcessing extends NZXAction {
                     getConfig().parametersUpdatedMark = false;
                 }
             } catch (Exception e) {
-                tracer.error("FailHttpResponseProcessing.UpdateParameters.Error/NOTIFY_ADMIN", NZXUtil.tankToShortLine(tank), e);
+                tracer.error("FailHttpResponseProcessing." + config.getName() + ".UpdateParameters.Error/NOTIFY_ADMIN", NZXUtil.tankToShortLine(tank), e);
             }
         }
         if (tank.type == ObjectType.RES) {
@@ -43,7 +43,7 @@ public class FailHttpResponseProcessing extends NZXAction {
                 flag = true;
             }
             if (flag) {
-                tracer.info("FailHttpResponseProcessing/" + marker, NZXUtil.tankToShortLine(tank));
+                tracer.info("FailHttpResponseProcessing." + config.getName() + "/" + marker, NZXUtil.tankToShortLine(tank));
             }
         }
     }
