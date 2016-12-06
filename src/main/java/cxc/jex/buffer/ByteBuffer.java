@@ -1,3 +1,6 @@
+/** The copyright of the algorithm belong to Gimatdinov Ildar, 2016
+ * 
+ */
 package cxc.jex.buffer;
 
 import java.io.IOException;
