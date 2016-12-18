@@ -15,7 +15,6 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.http.HttpObject;
 import io.netty.handler.codec.http.HttpRequest;
 import io.netty.handler.codec.http.HttpResponse;
-import io.netty.handler.codec.http.HttpVersion;
 import ru.otr.nzx.config.http.location.LocationConfig;
 import ru.otr.nzx.http.location.Location;
 import ru.otr.nzx.postprocessing.NZXPostProcessor;
@@ -23,7 +22,9 @@ import ru.otr.nzx.util.NZXUtil;
 
 public class DumpSearchLocation extends Location {
     static final String CONST_QUERY_TEXT = "text";
-    static final String CONST_HTML_PAGE = "<!DOCTYPE html><html><head><meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\"/><title>NZX: Search in dumps</title></head><body>%1s</body></html>";
+    static final String CONST_SEARCH_FORM = "<form action=\"%1s\"><p><input type=\"search\" name=\"text\" size=\"100\" placeholder=\"Search in dumps\"><input type=\"submit\" value=\"Search\"></p></form>";
+    static final String CONST_HTML_PAGE = "<!DOCTYPE html><html><head><meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\"/><title>NZX: Search in dumps</title></head><body>"
+            + CONST_SEARCH_FORM + "<hr>%2s</body></html>";
 
     private final DumpSearchProcessor processor;
 
@@ -35,7 +36,7 @@ public class DumpSearchLocation extends Location {
 
     @Override
     public HttpResponse clientToProxyRequest(HttpObject httpObject) {
-        String body = "<p>Use search request format: " + config.path + "?" + CONST_QUERY_TEXT + "=<b><i>QUERY</i></b><p>";
+        String body = "";
         if (httpObject instanceof HttpRequest) {
             HttpRequest request = (HttpRequest) httpObject;
             Map<String, String> parameters = new HashMap<>();
@@ -62,7 +63,7 @@ public class DumpSearchLocation extends Location {
                 NZXUtil.makeFailureResponse(500, request.getProtocolVersion());
             }
         }
-        String content = String.format(CONST_HTML_PAGE, body);
+        String content = String.format(CONST_HTML_PAGE, config.path, body);
         return NZXUtil.makeSimpleResponse(content, "text/html", 200, originalRequest.getProtocolVersion());
     }
 

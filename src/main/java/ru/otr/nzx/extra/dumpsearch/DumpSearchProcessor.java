@@ -56,6 +56,7 @@ public class DumpSearchProcessor extends Processor {
         if (!config.dumps_store.exists() && !config.dumps_store.mkdirs()) {
             throw new RuntimeException("Cannot make directory [" + config.dumps_store.getPath() + "]");
         }
+        boolean needIndexing = !config.search_index.exists();
         if (!config.search_index.exists() && !config.search_index.mkdirs()) {
             throw new RuntimeException("Cannot make directory [" + config.search_index.getPath() + "]");
         }
@@ -69,7 +70,7 @@ public class DumpSearchProcessor extends Processor {
                 ixwConfig.setOpenMode(OpenMode.CREATE_OR_APPEND);
             }
             ixWriter = new IndexWriter(directory, ixwConfig);
-            if (config.reindex_on_start) {
+            if (needIndexing || config.reindex_on_start) {
                 indexDumps();
             }
         } catch (Exception e) {
@@ -96,7 +97,7 @@ public class DumpSearchProcessor extends Processor {
     }
 
     private void indexDumps() throws IOException {
-        tracer.info("Reindex.Begin", "");
+        tracer.info("Index.Begin", "");
         FilenameFilter filter = new FilenameFilter() {
             @Override
             public boolean accept(File dir, String name) {
@@ -109,7 +110,7 @@ public class DumpSearchProcessor extends Processor {
         };
         for (File location : config.dumps_store.listFiles(filter)) {
             for (File date : location.listFiles()) {
-                tracer.debug("Reindex", location.getName() + "/" + date.getName());
+                tracer.debug("Index", location.getName() + "/" + date.getName());
                 for (File dump : date.listFiles()) {
                     String path = location.getName() + "/" + date.getName() + "/" + dump.getName();
                     String content = new String(Files.readAllBytes(dump.toPath()));
@@ -119,7 +120,7 @@ public class DumpSearchProcessor extends Processor {
             }
         }
         ixWriter.commit();
-        tracer.info("Reindex.End", "");
+        tracer.info("Index.End", "");
     }
 
     private void indexDump(String path, String content) throws IOException {
