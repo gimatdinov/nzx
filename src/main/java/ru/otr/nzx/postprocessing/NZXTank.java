@@ -16,6 +16,9 @@ public class NZXTank extends Tank {
     public URI requestURI;
     public int responseStatusCode;
     public boolean success;
+    
+    public String location_name;
+    public boolean dumping_enable;
 
     public final Map<String, String> properties = new HashMap<>();
 

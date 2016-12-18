@@ -10,7 +10,7 @@ import ru.otr.nzx.config.ConfigMap;
 
 public class HTTPServerConfigMap extends ConfigMap<HTTPServerConfig> {
 
-    public HTTPServerConfigMap(JSONArray src, String name, Config host) throws URISyntaxException {
+    public HTTPServerConfigMap(JSONArray src, String name, Config host) throws URISyntaxException  {
         super(src, name, host);
     }
 

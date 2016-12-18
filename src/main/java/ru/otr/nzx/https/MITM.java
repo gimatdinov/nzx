@@ -84,7 +84,6 @@ public class MITM {
                 ByteBuf buffer = Unpooled.buffer();
                 try (ByteBufOutputStream bbos = new ByteBufOutputStream(buffer)) {
                     IOUtils.copy(res.getEntity().getContent(), bbos);
-                } finally {
                 }
                 response = new DefaultFullHttpResponse(request.getProtocolVersion(), HttpResponseStatus.valueOf(res.getStatusLine().getStatusCode()), buffer);
                 HttpHeaders.setContentLength(response, buffer.readableBytes());

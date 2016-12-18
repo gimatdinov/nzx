@@ -5,7 +5,6 @@ import java.util.Date;
 
 import org.littleshoot.proxy.HttpFiltersAdapter;
 
-import cxc.jex.postprocessing.PostProcessor;
 import cxc.jex.tracer.Tracer;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.http.DefaultFullHttpResponse;
@@ -16,26 +15,27 @@ import io.netty.handler.codec.http.HttpObject;
 import io.netty.handler.codec.http.HttpRequest;
 import io.netty.handler.codec.http.HttpResponse;
 import io.netty.handler.codec.http.HttpResponseStatus;
-import io.netty.handler.codec.http.HttpVersion;
 import io.netty.handler.codec.http.HttpHeaders.Names;
 import io.netty.handler.codec.http.HttpHeaders.Values;
+import io.netty.handler.codec.http.HttpMethod;
 import ru.otr.nzx.config.http.location.LocationConfig;
 import ru.otr.nzx.http.HTTPServer.ObjectType;
+import ru.otr.nzx.postprocessing.NZXPostProcessor;
 import ru.otr.nzx.postprocessing.NZXTank;
 
-public class Location<Config extends LocationConfig> extends HttpFiltersAdapter {
+public class Location extends HttpFiltersAdapter {
 
-    protected final PostProcessor<NZXTank> postProcessor;
+    protected final NZXPostProcessor postProcessor;
     protected final Tracer tracer;
 
     protected final Date requestDateTime;
     protected final String requestID;
     protected final URI requestURI;
 
-    protected final Config config;
+    protected final LocationConfig config;
 
-    public Location(HttpRequest originalRequest, ChannelHandlerContext ctx, Date requestDateTime, String requestID, URI requestURI, Config config,
-            PostProcessor<NZXTank> postProcessor, Tracer tracer) {
+    public Location(HttpRequest originalRequest, ChannelHandlerContext ctx, Date requestDateTime, String requestID, URI requestURI, LocationConfig config,
+            NZXPostProcessor postProcessor, Tracer tracer) {
         super(originalRequest, ctx);
         this.requestDateTime = requestDateTime;
         this.requestID = requestID;
@@ -48,20 +48,19 @@ public class Location<Config extends LocationConfig> extends HttpFiltersAdapter 
     @Override
     public HttpResponse clientToProxyRequest(HttpObject httpObject) {
         tracer.info("HTTP." + HttpResponseStatus.NO_CONTENT.code(), requestURI.getPath());
-        HttpVersion httpVersion = HttpVersion.HTTP_1_1;
         if (httpObject instanceof HttpRequest) {
-            httpVersion = ((HttpRequest) httpObject).getProtocolVersion();
             if (config.post_processing_enable) {
                 putToPostProcessor(httpObject);
             }
         }
-        FullHttpResponse response = new DefaultFullHttpResponse(httpVersion, HttpResponseStatus.NO_CONTENT);
+        FullHttpResponse response = new DefaultFullHttpResponse(originalRequest.getProtocolVersion(), HttpResponseStatus.NO_CONTENT);
         HttpHeaders.setHeader(response, Names.CONNECTION, Values.CLOSE);
         return response;
     }
 
     protected void putToPostProcessor(HttpObject httpObject) {
         NZXTank tank = new NZXTank();
+        tank.location_name = config.getName();
         tank.requestID = requestID;
         tank.requestDateTime = requestDateTime;
         tank.requestURI = requestURI;
@@ -81,8 +80,8 @@ public class Location<Config extends LocationConfig> extends HttpFiltersAdapter 
             FullHttpMessage msg = (FullHttpMessage) httpObject;
             postProcessor.attachBuffer(tank, msg.content().readableBytes());
             tank.writeContent(msg.content());
-            if (config.dump_content_store != null) {
-                tank.properties.put(LocationConfig.DUMP_CONTENT_STORE, config.dump_content_store);
+            if (postProcessor.isDumpingAll() || HttpMethod.POST.equals(originalRequest.getMethod())) {
+                tank.dumping_enable = config.dumping_enable;
             }
         }
         postProcessor.put(tank);

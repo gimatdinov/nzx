@@ -1,7 +1,7 @@
 # Maven
 target/
 log/
-dump/
+dumps/
 
 # Eclipse
 .settings/

@@ -16,7 +16,7 @@ public abstract class PostProcessor<T extends Tank> {
     private ExecutorService executor;
     boolean started = false;
 
-    final ConcurrentLinkedQueue<T> loadedTanks = new ConcurrentLinkedQueue<>();
+    protected final ConcurrentLinkedQueue<T> loadedTanks = new ConcurrentLinkedQueue<>();
 
     protected final List<Action<T>> actions = new ArrayList<>();
 
@@ -34,8 +34,10 @@ public abstract class PostProcessor<T extends Tank> {
         for (int i = 0; i < workers; i++) {
             this.workers.add(new Worker<T>(this));
         }
-        for (Action<T> item : actions) {
-            this.actions.add(item);
+        if (actions != null) {
+            for (Action<T> item : actions) {
+                this.actions.add(item);
+            }
         }
     }
 

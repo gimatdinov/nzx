@@ -1,4 +1,4 @@
-package ru.otr.nzx.config.http.location;
+package ru.otr.nzx.config;
 
 import java.net.URISyntaxException;
 import java.util.Collection;
@@ -6,33 +6,32 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
-import org.json.JSONArray;
 import org.json.JSONObject;
 
-import ru.otr.nzx.config.Config;
+public class SimpleConfig extends Config implements Map<String, String> {
 
-public class HeadersConfigMap extends Config implements Map<String, String> {
-    public final static String VALUE = "value";
-    private Map<String, String> map = new ConcurrentHashMap<>();
+    public final Map<String, String> map = new ConcurrentHashMap<>();
 
-    public HeadersConfigMap(JSONArray src, String name, Config host) throws URISyntaxException {
+    public SimpleConfig(String name, Config host) throws URISyntaxException {
+        super(name, host);
+    }
+
+    public SimpleConfig(JSONObject src, String name, Config host) throws URISyntaxException {
         super(name, host);
         if (src != null) {
-            for (int i = 0; i < src.length(); i++) {
-                JSONObject header = src.getJSONObject(i);
-                map.put(header.getString(NAME), header.getString(VALUE));
+            for (Object key : src.keySet()) {
+                map.put((String) key, src.getString((String) key));
             }
         }
     }
 
     @Override
     public Object toJSON() {
-        JSONArray json = new JSONArray();
+        JSONObject json = new JSONObject();
         for (Map.Entry<String, String> item : map.entrySet()) {
-            JSONObject header = new JSONObject();
-            header.put(NAME, item.getKey());
-            header.put(VALUE, item.getValue());
-            json.put(header);
+            if (item.getValue() != null && item.getValue().length() > 0) {
+                json.put(item.getKey(), item.getValue());
+            }
         }
         return json;
     }

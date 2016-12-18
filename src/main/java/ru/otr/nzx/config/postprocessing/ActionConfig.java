@@ -1,12 +1,12 @@
 package ru.otr.nzx.config.postprocessing;
 
 import java.net.URISyntaxException;
-import java.util.HashMap;
 import java.util.Map;
 
 import org.json.JSONObject;
 
 import ru.otr.nzx.config.Config;
+import ru.otr.nzx.config.SimpleConfig;
 
 public class ActionConfig extends Config {
     public final static String ENABLE = "enable";
@@ -16,22 +16,14 @@ public class ActionConfig extends Config {
     public boolean enable;
     public final String action_class;
 
-    public final Map<String, String> parameters = new HashMap<>();
+    public final SimpleConfig parameters;
     public boolean parametersUpdatedMark = true;
 
     public ActionConfig(JSONObject src, ActionConfigMap actions) throws URISyntaxException {
         super(src.getString(NAME), actions);
         enable = src.optBoolean(ENABLE, true);
         action_class = src.getString(ACTION_CLASS);
-        for (Object key : src.keySet()) {
-            if (ENABLE.equals(key)) {
-                continue;
-            }
-            if (ACTION_CLASS.equals(key)) {
-                continue;
-            }
-            parameters.put((String) key, src.getString((String) key));
-        }
+        parameters = new SimpleConfig(src.optJSONObject(PARAMETERS), PARAMETERS, this);
     }
 
     @Override
@@ -40,13 +32,7 @@ public class ActionConfig extends Config {
         json.put(NAME, name);
         json.put(ENABLE, enable);
         json.put(ACTION_CLASS, action_class);
-        for (Map.Entry<String, String> item : parameters.entrySet()) {
-            if (item.getValue() == null || item.getValue().length() == 0) {
-                json.remove(item.getKey());
-            } else {
-                json.put(item.getKey(), item.getValue());
-            }
-        }
+        json.put(PARAMETERS, parameters.toJSON());
         return json;
     }
 

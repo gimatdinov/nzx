@@ -1,9 +1,11 @@
-package ru.otr.nzx.postprocessing;
+package ru.otr.nzx.extra.postprocessing;
 
 import java.io.ByteArrayOutputStream;
 
 import cxc.jex.tracer.Tracer;
 import ru.otr.nzx.http.HTTPServer.ObjectType;
+import ru.otr.nzx.postprocessing.NZXAction;
+import ru.otr.nzx.postprocessing.NZXTank;
 import ru.otr.nzx.util.NZXUtil;
 
 public class Matching extends NZXAction {
@@ -43,7 +45,6 @@ public class Matching extends NZXAction {
 				if (uri_regex.matches(tank.requestURI.toString()) && content.matches(content_regex)) {
 					tracer.info("Matching." + config.getName() + "/" + marker, NZXUtil.tankToShortLine(tank));
 				}
-			} finally {
 			}
 		}
 	}

@@ -53,10 +53,11 @@ public class NZXApplication implements CommandLineRunner {
                 configFile = new File(cmdLine.getOptionValue(OPTION_CONFIG)).getAbsoluteFile();
             }
             Tracer tracer = new LogbackTracer("NZX");
+            tracer.info("Loading", "NZX version: " + NZXConstants.NZX_VERSION);
             NZXConfigService cfgService = new NZXConfigService(configFile, tracer);
             if (cmdLine.getOptionValue(OPTION_SERVER_NAME) != null) {
                 cfgService.nzx().setServerName(cmdLine.getOptionValue(OPTION_SERVER_NAME));
-            }            
+            }     
             nzx = new NZX(cfgService, tracer);
             nzx.bootstrap();
             nzx.start();

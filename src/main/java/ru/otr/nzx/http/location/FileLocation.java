@@ -9,7 +9,6 @@ import java.util.Date;
 
 import org.apache.commons.io.IOUtils;
 
-import cxc.jex.postprocessing.PostProcessor;
 import cxc.jex.tracer.Tracer;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufOutputStream;
@@ -22,17 +21,16 @@ import io.netty.handler.codec.http.HttpObject;
 import io.netty.handler.codec.http.HttpRequest;
 import io.netty.handler.codec.http.HttpResponse;
 import io.netty.handler.codec.http.HttpResponseStatus;
-import io.netty.handler.codec.http.HttpVersion;
 import io.netty.handler.codec.http.HttpHeaders.Names;
 import io.netty.handler.codec.http.HttpHeaders.Values;
 import ru.otr.nzx.config.http.location.LocationConfig;
-import ru.otr.nzx.postprocessing.NZXTank;
+import ru.otr.nzx.postprocessing.NZXPostProcessor;
 import ru.otr.nzx.util.NZXUtil;
 
-public class FileLocation extends Location<LocationConfig> {
+public class FileLocation extends Location {
 
     public FileLocation(HttpRequest originalRequest, ChannelHandlerContext ctx, Date requestDateTime, String requestID, URI requestURI, LocationConfig config,
-            PostProcessor<NZXTank> postProcessor, Tracer tracer) {
+            NZXPostProcessor postProcessor, Tracer tracer) {
         super(originalRequest, ctx, requestDateTime, requestID, requestURI, config, postProcessor, tracer);
     }
 
@@ -41,9 +39,7 @@ public class FileLocation extends Location<LocationConfig> {
         File file = new File(config.file).getAbsoluteFile();
         tracer.info("File", file.getPath());
 
-        HttpVersion httpVersion = HttpVersion.HTTP_1_1;
         if (httpObject instanceof HttpRequest) {
-            httpVersion = ((HttpRequest) httpObject).getProtocolVersion();
             if (config.post_processing_enable) {
                 putToPostProcessor(httpObject);
             }
@@ -56,17 +52,17 @@ public class FileLocation extends Location<LocationConfig> {
             ByteBuf buffer = Unpooled.buffer(fis.available());
             bbos = new ByteBufOutputStream(buffer);
             IOUtils.copy(fis, bbos);
-            FullHttpResponse response = new DefaultFullHttpResponse(httpVersion, HttpResponseStatus.OK, buffer);
+            FullHttpResponse response = new DefaultFullHttpResponse(originalRequest.getProtocolVersion(), HttpResponseStatus.OK, buffer);
             HttpHeaders.setContentLength(response, buffer.readableBytes());
             HttpHeaders.setHeader(response, HttpHeaders.Names.CONTENT_TYPE, config.mimeType);
             HttpHeaders.setHeader(response, Names.CONNECTION, Values.CLOSE);
             return response;
         } catch (FileNotFoundException e) {
             tracer.warn("File.NotFound", file.getPath());
-            return NZXUtil.makeFailureResponse(404, httpVersion);
+            return NZXUtil.makeFailureResponse(404, originalRequest.getProtocolVersion());
         } catch (IOException e) {
             tracer.warn("File.Error/NOTIFY_ADMIN", file.getPath(), e);
-            return NZXUtil.makeFailureResponse(500, httpVersion);
+            return NZXUtil.makeFailureResponse(500, originalRequest.getProtocolVersion());
         } finally {
             try {
                 if (fis != null) {

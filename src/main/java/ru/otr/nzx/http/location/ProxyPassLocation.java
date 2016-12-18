@@ -6,27 +6,25 @@ import java.util.Date;
 import java.util.Map;
 import java.util.regex.Pattern;
 
-import cxc.jex.postprocessing.PostProcessor;
 import cxc.jex.tracer.Tracer;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.http.HttpHeaders;
 import io.netty.handler.codec.http.HttpObject;
 import io.netty.handler.codec.http.HttpRequest;
 import io.netty.handler.codec.http.HttpResponse;
-import io.netty.handler.codec.http.HttpVersion;
 import io.netty.handler.codec.http.HttpHeaders.Names;
 import ru.otr.nzx.config.http.location.LocationConfig;
 import ru.otr.nzx.https.MITM;
-import ru.otr.nzx.postprocessing.NZXTank;
+import ru.otr.nzx.postprocessing.NZXPostProcessor;
 import ru.otr.nzx.util.NZXUtil;
 
-public class ProxyPassLocation extends Location<LocationConfig> {
+public class ProxyPassLocation extends Location {
     private static final Pattern HTTPS_SCHEME = Pattern.compile("^https://.*", Pattern.CASE_INSENSITIVE);
 
     private URI passURI;
 
     public ProxyPassLocation(HttpRequest originalRequest, ChannelHandlerContext ctx, Date requestDateTime, String requestID, URI requestURI,
-            LocationConfig config, PostProcessor<NZXTank> postProcessor, Tracer tracer) {
+            LocationConfig config, NZXPostProcessor postProcessor, Tracer tracer) {
         super(originalRequest, ctx, requestDateTime, requestID, requestURI, config, postProcessor, tracer);
         try {
             this.passURI = makePassURI(requestURI, config);
@@ -39,7 +37,7 @@ public class ProxyPassLocation extends Location<LocationConfig> {
     @Override
     public HttpResponse clientToProxyRequest(HttpObject httpObject) {
         if (passURI == null) {
-            return NZXUtil.makeFailureResponse(500, HttpVersion.HTTP_1_1);
+            return NZXUtil.makeFailureResponse(500, originalRequest.getProtocolVersion());
         }
         HttpResponse response = null;
         tracer.info("Client.Request", "PASS " + passURI.toString());

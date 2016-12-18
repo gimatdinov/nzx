@@ -1,7 +1,9 @@
-package ru.otr.nzx.postprocessing;
+package ru.otr.nzx.extra.postprocessing;
 
 import cxc.jex.tracer.Tracer;
 import ru.otr.nzx.http.HTTPServer.ObjectType;
+import ru.otr.nzx.postprocessing.NZXAction;
+import ru.otr.nzx.postprocessing.NZXTank;
 import ru.otr.nzx.util.NZXUtil;
 
 public class FailHttpResponseProcessing extends NZXAction {

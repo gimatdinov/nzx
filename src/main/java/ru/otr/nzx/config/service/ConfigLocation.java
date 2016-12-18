@@ -19,7 +19,7 @@ import io.netty.handler.codec.http.HttpRequest;
 import io.netty.handler.codec.http.HttpResponse;
 import io.netty.handler.codec.http.HttpVersion;
 import ru.otr.nzx.config.Config;
-import ru.otr.nzx.config.http.location.HeadersConfigMap;
+import ru.otr.nzx.config.SimpleConfig;
 import ru.otr.nzx.config.http.location.LocationConfig;
 import ru.otr.nzx.config.http.location.LocationConfigMap;
 import ru.otr.nzx.config.postprocessing.ActionConfig;
@@ -69,8 +69,8 @@ public class ConfigLocation extends HttpFiltersAdapter {
                         if (node instanceof ActionConfig) {
                             return configToHttpResponse(cfgService.updateAction((ActionConfig) node, parameters));
                         }
-                        if (node instanceof HeadersConfigMap) {
-                            return configToHttpResponse(cfgService.updateLocationHeaders((HeadersConfigMap) node, parameters));
+                        if (node instanceof SimpleConfig) {
+                            return configToHttpResponse(cfgService.update((SimpleConfig) node, parameters));
                         }
                     }
                     if (HttpMethod.POST.equals(request.getMethod())) {
@@ -83,8 +83,8 @@ public class ConfigLocation extends HttpFiltersAdapter {
                             cfgService.deleteLocation((LocationConfig) node);
                             return NZXUtil.makeSimpleResponse("{\n    //Location deleted\n}", "application/json; charset=UTF-8", 200, HttpVersion.HTTP_1_1);
                         }
-                        if (node instanceof HeadersConfigMap) {
-                            return configToHttpResponse(cfgService.deleteLocationHeaders((HeadersConfigMap) node));
+                        if (node instanceof SimpleConfig) {
+                            return configToHttpResponse(cfgService.delete((SimpleConfig) node));
                         }
                     }
                     return configToHttpResponse(node);

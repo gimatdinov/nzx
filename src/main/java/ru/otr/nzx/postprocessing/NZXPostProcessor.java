@@ -1,7 +1,6 @@
 package ru.otr.nzx.postprocessing;
 
-import java.util.ArrayList;
-import java.util.Collection;
+import java.io.File;
 import java.util.List;
 
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
@@ -21,25 +20,25 @@ public class NZXPostProcessor extends PostProcessor<NZXTank> {
         this.config = config;
     }
 
-    private static List<Action<NZXTank>> loadActions(Collection<ActionConfig> configs) {
+    public void bootstrap() {
+        super.init(config.workers, config.buffer_pool_size, config.buffer_size_min, null, new ThreadFactoryBuilder().setNameFormat("PP-W-%d").build());
+
+        File store = new File(config.dumps_store).getAbsoluteFile();
+        if (!store.exists() && !store.mkdirs()) {
+            throw new RuntimeException("Cannot make directory [" + store.getPath() + "]");
+        }
+        actions.add(new Dumping(config.dumps_store));
         try {
-            List<Action<NZXTank>> result = new ArrayList<>();
-            result.add(new Dumping());
-            for (ActionConfig cfg : configs) {
-                Class<?> actionClass = Class.forName(cfg.action_class);
-                NZXAction action = (NZXAction) actionClass.newInstance();
+            for (ActionConfig cfg : config.actions.values()) {
+                @SuppressWarnings("unchecked")
+                Class<NZXAction> actionClass = (Class<NZXAction>) Class.forName(cfg.action_class);
+                NZXAction action = actionClass.newInstance();
                 action.setConfig(cfg);
-                result.add(action);
+                actions.add(action);
             }
-            return result;
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
-    }
-
-    public void bootstrap() {
-        super.init(config.workers, config.buffer_pool_size, config.buffer_size_min, loadActions(config.actions.values()),
-                new ThreadFactoryBuilder().setNameFormat("nzx-PostProcessor-Worker-%d").build());
     }
 
     public boolean isDumpingEnable() {
@@ -51,4 +50,11 @@ public class NZXPostProcessor extends PostProcessor<NZXTank> {
         return false;
     }
 
+    public boolean isDumpingAll() {
+        return config.dumping_all;
+    }
+
+    public List<Action<NZXTank>> getActions() {
+        return actions;
+    }
 }
