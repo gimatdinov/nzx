@@ -39,133 +39,134 @@ import ru.otr.nzx.postprocessing.NZXTank;
 
 public class DumpSearchProcessor extends Processor {
 
-    private DumpSearchProcessorConfig config;
+	private DumpSearchProcessorConfig config;
 
-    private Analyzer analyzer;
-    private Directory directory;
-    private IndexWriter ixWriter;
+	private Analyzer analyzer;
+	private Directory directory;
+	private IndexWriter ixWriter;
 
-    public DumpSearchProcessor(LocationConfig locationConfig, NZXPostProcessor postProcessor, Tracer tracer) {
-        super(locationConfig, postProcessor, tracer.getSubtracer("#DumpSearchProcessor"));
-        config = new DumpSearchProcessorConfig(locationConfig.processor_parameters);
-    }
+	public DumpSearchProcessor(String serverName, LocationConfig locationConfig, NZXPostProcessor postProcessor, Tracer tracer) {
+		super(serverName, locationConfig, postProcessor, tracer.getSubtracer("#DumpSearchProcessor"));
+		config = new DumpSearchProcessorConfig(serverName, locationConfig.processor_parameters);
+	}
 
-    @Override
-    public void bootstrap() {
-        tracer.info("Bootstrap", "Index directory [" + config.search_index.getPath() + "]");
-        if (!config.dumps_store.exists() && !config.dumps_store.mkdirs()) {
-            throw new RuntimeException("Cannot make directory [" + config.dumps_store.getPath() + "]");
-        }
-        boolean needIndexing = !config.search_index.exists();
-        if (!config.search_index.exists() && !config.search_index.mkdirs()) {
-            throw new RuntimeException("Cannot make directory [" + config.search_index.getPath() + "]");
-        }
-        try {
-            analyzer = new StandardAnalyzer();
-            directory = FSDirectory.open(config.search_index.toPath());
-            IndexWriterConfig ixwConfig = new IndexWriterConfig(analyzer);
-            if (config.reindex_on_start) {
-                ixwConfig.setOpenMode(OpenMode.CREATE);
-            } else {
-                ixwConfig.setOpenMode(OpenMode.CREATE_OR_APPEND);
-            }
-            ixWriter = new IndexWriter(directory, ixwConfig);
-            if (needIndexing || config.reindex_on_start) {
-                indexDumps();
-            }
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-    }
+	@Override
+	public void bootstrap() {
+		tracer.info("Bootstrap", "Index directory [" + config.search_index.getPath() + "]");
+		if (!config.dumps_store.exists() && !config.dumps_store.mkdirs()) {
+			throw new RuntimeException("Cannot make directory [" + config.dumps_store.getPath() + "]");
+		}
+		boolean needIndexing = !config.search_index.exists();
+		if (!config.search_index.exists() && !config.search_index.mkdirs()) {
+			throw new RuntimeException("Cannot make directory [" + config.search_index.getPath() + "]");
+		}
+		try {
+			analyzer = new StandardAnalyzer();
+			directory = FSDirectory.open(config.search_index.toPath());
+			IndexWriterConfig ixwConfig = new IndexWriterConfig(analyzer);
+			if (config.reindex_on_start) {
+				ixwConfig.setOpenMode(OpenMode.CREATE);
+			} else {
+				ixwConfig.setOpenMode(OpenMode.CREATE_OR_APPEND);
+			}
+			ixWriter = new IndexWriter(directory, ixwConfig);
+			if (needIndexing || config.reindex_on_start) {
+				indexDumps();
+			}
+		} catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+	}
 
-    @Override
-    public void start() {
-        tracer.info("Starting", "");
+	@Override
+	public void start() {
+		tracer.info("Starting", "");
 
-    }
+	}
 
-    @Override
-    public void stop() {
-        try {
-            ixWriter.commit();
-            ixWriter.close();
-            directory.close();
-        } catch (IOException e) {
-            tracer.error("Lucene.Error/NOTIFY_ADMIN", e.getMessage(), e);
-        }
-        tracer.info("Stopped", "");
-    }
+	@Override
+	public void stop() {
+		try {
+			ixWriter.commit();
+			ixWriter.close();
+			directory.close();
+		} catch (IOException e) {
+			tracer.error("Lucene.Error/NOTIFY_ADMIN", e.getMessage(), e);
+		}
+		tracer.info("Stopped", "");
+	}
 
-    private void indexDumps() throws IOException {
-        tracer.info("Index.Begin", "");
-        FilenameFilter filter = new FilenameFilter() {
-            @Override
-            public boolean accept(File dir, String name) {
-                if (DumpSearchProcessorConfig.CONST_SEARCH_INDEX.equals(name)) {
-                    return false;
-                } else {
-                    return true;
-                }
-            }
-        };
-        for (File location : config.dumps_store.listFiles(filter)) {
-            for (File date : location.listFiles()) {
-                tracer.debug("Index", location.getName() + "/" + date.getName());
-                for (File dump : date.listFiles()) {
-                    String path = location.getName() + "/" + date.getName() + "/" + dump.getName();
-                    String content = new String(Files.readAllBytes(dump.toPath()));
-                    indexDump(path, content);
-                }
-                ixWriter.flush();
-            }
-        }
-        ixWriter.commit();
-        tracer.info("Index.End", "");
-    }
+	private void indexDumps() throws IOException {
+		tracer.info("Index.Begin", "");
+		FilenameFilter filter = new FilenameFilter() {
+			@Override
+			public boolean accept(File dir, String name) {
+				for (String regex : config.skip_in_dumps_store) {
+					if (name.matches(regex)) {
+						return false;
+					}
+				}
+				return true;
+			}
+		};
+		for (File location : config.dumps_store.listFiles(filter)) {
+			for (File date : location.listFiles()) {
+				tracer.debug("Index", location.getName() + "/" + date.getName());
+				for (File dump : date.listFiles()) {
+					String path = location.getName() + "/" + date.getName() + "/" + dump.getName();
+					String content = new String(Files.readAllBytes(dump.toPath()));
+					indexDump(path, content);
+				}
+				ixWriter.flush();
+			}
+		}
+		ixWriter.commit();
+		tracer.info("Index.End", "");
+	}
 
-    private void indexDump(String path, String content) throws IOException {
-        StringBuilder cleanContent = new StringBuilder();
-        for (String term : content.toString().split(" ")) {
-            if (term.length() < 1024) {
-                cleanContent.append(term);
-                cleanContent.append(" ");
-            }
-        }
-        Document doc = new Document();
-        doc.add(new Field(DumpSearchProcessorConfig.CONST_PATH, path, TextField.TYPE_STORED));
-        doc.add(new Field(DumpSearchProcessorConfig.CONST_CONTENT, cleanContent.toString(), TextField.TYPE_STORED));
-        ixWriter.addDocument(doc);
-    }
+	private void indexDump(String path, String content) throws IOException {
+		StringBuilder cleanContent = new StringBuilder();
+		for (String term : content.toString().split(" ")) {
+			if (term.length() < 1024) {
+				cleanContent.append(term);
+				cleanContent.append(" ");
+			}
+		}
+		Document doc = new Document();
+		doc.add(new Field(DumpSearchProcessorConfig.CONST_PATH, path, TextField.TYPE_STORED));
+		doc.add(new Field(DumpSearchProcessorConfig.CONST_CONTENT, cleanContent.toString(), TextField.TYPE_STORED));
+		ixWriter.addDocument(doc);
+	}
 
-    public void indexDump(NZXTank tank) throws IllegalAccessException, IOException {
-        try (ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
-            tank.getBuffer().read(baos);
-            indexDump(Dumping.makePath(tank), baos.toString());
-            ixWriter.commit();
-        }
-    }
+	public void indexDump(NZXTank tank) throws IllegalAccessException, IOException {
+		try (ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
+			tank.getBuffer().read(baos);
+			indexDump(Dumping.makePath(tank), baos.toString());
+			ixWriter.commit();
+		}
+	}
 
-    @Override
-    public Action<NZXTank> makeAction() {
-        return new DumpIndexing(this);
-    }
+	@Override
+	public Action<NZXTank> makeAction() {
+		return new DumpIndexing(this);
+	}
 
-    @Override
-    public Location makeLocation(HttpRequest originalRequest, ChannelHandlerContext ctx, Date requestDateTime, String requestID, URI requestURI) {
-        return new DumpSearchLocation(this, originalRequest, ctx, requestDateTime, requestID, requestURI, locationConfig, postProcessor, tracer);
-    }
+	@Override
+	public Location makeLocation(HttpRequest originalRequest, ChannelHandlerContext ctx, Date requestDateTime, String requestID, URI requestURI) {
+		return new DumpSearchLocation(this, originalRequest, ctx, requestDateTime, requestID, requestURI, locationConfig, postProcessor, tracer);
+	}
 
-    public List<String> search(String queryText) throws IOException {
-        List<String> result = new ArrayList<>();
-        DirectoryReader dReader = DirectoryReader.open(directory);
-        IndexSearcher ixSearcher = new IndexSearcher(dReader);
-        QueryBuilder qBuilder = new QueryBuilder(analyzer);
-        Query query = qBuilder.createPhraseQuery(DumpSearchProcessorConfig.CONST_CONTENT, queryText);
-        ScoreDoc[] hits = ixSearcher.search(query, 1000).scoreDocs;
-        for (ScoreDoc item : hits) {
-            result.add(config.ftp_server + "/" + ixSearcher.doc(item.doc).get(DumpSearchProcessorConfig.CONST_PATH));
-        }
-        dReader.close();
-        return result;
-    }
+	public List<String> search(String queryText) throws IOException {
+		List<String> result = new ArrayList<>();
+		DirectoryReader dReader = DirectoryReader.open(directory);
+		IndexSearcher ixSearcher = new IndexSearcher(dReader);
+		QueryBuilder qBuilder = new QueryBuilder(analyzer);
+		Query query = qBuilder.createPhraseQuery(DumpSearchProcessorConfig.CONST_CONTENT, queryText);
+		ScoreDoc[] hits = ixSearcher.search(query, 1000).scoreDocs;
+		for (ScoreDoc item : hits) {
+			result.add(config.ftp_server + "/" + ixSearcher.doc(item.doc).get(DumpSearchProcessorConfig.CONST_PATH));
+		}
+		dReader.close();
+		return result;
+	}
 }

@@ -62,8 +62,8 @@ public class HTTPServer {
                 try {
                     @SuppressWarnings("unchecked")
                     Class<Processor> clazz = (Class<Processor>) Class.forName(item.processor_class);
-                    Constructor<Processor> constructor = clazz.getConstructor(new Class[] { LocationConfig.class, NZXPostProcessor.class, Tracer.class });
-                    Processor processor = constructor.newInstance(item, postProcessor, tracer);
+                    Constructor<Processor> constructor = clazz.getConstructor(new Class[] { String.class, LocationConfig.class, NZXPostProcessor.class, Tracer.class });
+                    Processor processor = constructor.newInstance(config.getName(), item, postProcessor, tracer);
                     Action<NZXTank> action = processor.makeAction();
                     if (action != null)
                         if (postProcessor != null) {

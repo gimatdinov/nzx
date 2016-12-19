@@ -13,11 +13,13 @@ import ru.otr.nzx.postprocessing.NZXPostProcessor;
 import ru.otr.nzx.postprocessing.NZXTank;
 
 public abstract class Processor {
+	protected final String serverName;
     protected final LocationConfig locationConfig;
     protected final NZXPostProcessor postProcessor;
     protected final Tracer tracer;
 
-    public Processor(LocationConfig locationConfig, NZXPostProcessor postProcessor, Tracer tracer) {
+    public Processor(String serverName, LocationConfig locationConfig, NZXPostProcessor postProcessor, Tracer tracer) {
+    	this.serverName = serverName;
         this.locationConfig = locationConfig;
         this.postProcessor = postProcessor;
         this.tracer = tracer;

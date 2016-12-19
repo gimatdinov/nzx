@@ -1,6 +1,5 @@
 package ru.otr.nzx.config;
 
-import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.HashMap;
 import java.util.Map;
@@ -9,6 +8,8 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 public abstract class Config {
+	public final static String NAME_FORMAT = "[a-zA-Z_][a-zA-Z0-9_.-]*";
+
 	public final static String ENABLE = "enable";
 	public final static String NAME = "name";
 
@@ -17,12 +18,15 @@ public abstract class Config {
 	protected final Map<String, Config> context;
 
 	public Config(String name, Config host) throws URISyntaxException {
-		this.name = name;
 		if (host != null) {
+			if (name == null || !name.matches(NAME_FORMAT)) {
+				throw new URISyntaxException("\"" + name + "\"", "Invalid name!");
+			}
+			this.name = name;
 			this.host = host;
 			context = host.getContext();
-			new URI(getPathName());
 		} else {
+			this.name = "/";
 			this.host = null;
 			context = new HashMap<>();
 		}
@@ -34,7 +38,7 @@ public abstract class Config {
 			throw new URISyntaxException(getPathName(), "PathName already bound!");
 		}
 		context.put(getPathName(), this);
-		if (name != null && name.length() > 0) {
+		if (host != null) {
 			if (context.containsKey(getPathName() + "/")) {
 				throw new URISyntaxException(getPathName() + "/", "PathName already bound!");
 			}
@@ -44,7 +48,7 @@ public abstract class Config {
 
 	public void unbindPathName() {
 		context.remove(getPathName());
-		if (name != null && name.length() > 0) {
+		if (host != null) {
 			context.remove(getPathName() + "/");
 		}
 	}
@@ -60,9 +64,9 @@ public abstract class Config {
 
 	public String getPathName() {
 		if (host == null) {
-			return "/" + name;
+			return name;
 		} else {
-			return host.getPathName() + (host.name.length() > 0 ? "/" : "") + name;
+			return host.getPathName() + (host.host != null ? "/" : "") + name;
 		}
 	}
 
@@ -78,7 +82,7 @@ public abstract class Config {
 		if (json instanceof JSONArray) {
 			return ((JSONArray) json).toString(indentFactor);
 		}
-		return "";
+		return json.toString();
 	}
 
 	public abstract Object toJSON();

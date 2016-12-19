@@ -25,7 +25,7 @@ public class NZXConfig extends Config {
 	public final HTTPConfig http;
 
 	public NZXConfig(JSONObject src) throws URISyntaxException, UnknownHostException {
-		super("", null);
+		super(null, null);
 		server_name = src.optString(SERVER_NAME, InetAddress.getLocalHost().getHostName());
 		log_config = src.optString(LOG_CONFIG, null);
 		log = src.optString(LOG, "log");
