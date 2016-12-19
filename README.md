@@ -10,6 +10,8 @@ HTTP proxy, based on LittleProxy (https://github.com/adamfisk/LittleProxy), conf
  * Dumping
  * Regex matching with e-mail notification
  * Fail HTTP response processing with e-mail notification
+* Extensible processing
+ * Search in dumps
 * Proxy pass HTTP-to-HTTPS (unusual rare need) 
 * Built-in FTP server (to view dumps) 
 
