@@ -1,4 +1,4 @@
-package ru.otr.nzx.config.postprocessing;
+package ru.otr.nzx.config.http.postprocessing;
 
 import java.net.URISyntaxException;
 
@@ -12,16 +12,12 @@ public class PostProcessorConfig extends Config {
     public final static String BUFFER_SIZE_MIN = "buffer_size_min";
     public final static String WORKERS = "workers";
     public final static String ACTIONS = "actions";
-    public final static String DUMPS_STORE = "dumps_store";
-    public final static String DUMPING_ALL = "dumping_all";
 
     public final boolean enable;
     public final int buffer_pool_size;
     public final int buffer_size_min;
     public final int workers;
     public final ActionConfigMap actions;
-    public final String dumps_store;
-    public final boolean dumping_all;
 
     public PostProcessorConfig(JSONObject src, String name, Config host) throws URISyntaxException {
         super(name, host);
@@ -30,8 +26,6 @@ public class PostProcessorConfig extends Config {
         buffer_size_min = src.getInt(BUFFER_SIZE_MIN);
         workers = src.optInt(WORKERS, 1);
         actions = new ActionConfigMap(src.optJSONArray(ACTIONS), ACTIONS, this);
-        dumps_store = src.optString(DUMPS_STORE, null);
-        dumping_all = src.optBoolean(DUMPING_ALL, false);
     }
 
     @Override
@@ -46,8 +40,6 @@ public class PostProcessorConfig extends Config {
             server.put(WORKERS, workers);
         }
         server.put(ACTIONS, actions.toJSON());
-        server.put(DUMPS_STORE, dumps_store);
-        server.put(DUMPING_ALL, dumping_all);
         return server;
     }
 

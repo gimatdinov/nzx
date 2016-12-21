@@ -1,17 +1,17 @@
-package ru.otr.nzx.config.http;
+package ru.otr.nzx.config.http.server;
 
 import java.net.URISyntaxException;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
 
-import ru.otr.nzx.config.Config;
 import ru.otr.nzx.config.ConfigMap;
+import ru.otr.nzx.config.http.HTTPConfig;
 
 public class HTTPServerConfigMap extends ConfigMap<HTTPServerConfig> {
 
-    public HTTPServerConfigMap(JSONArray src, String name, Config host) throws URISyntaxException  {
-        super(src, name, host);
+    public HTTPServerConfigMap(JSONArray src, String name, HTTPConfig http) throws URISyntaxException  {
+        super(src, name, http);
     }
 
     @Override

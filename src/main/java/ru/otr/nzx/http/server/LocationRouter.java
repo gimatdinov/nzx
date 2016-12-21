@@ -1,4 +1,4 @@
-package ru.otr.nzx.http;
+package ru.otr.nzx.http.server;
 
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -12,20 +12,21 @@ import cxc.jex.tracer.Tracer;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.http.HttpMethod;
 import io.netty.handler.codec.http.HttpRequest;
-import ru.otr.nzx.config.http.HTTPServerConfig;
 import ru.otr.nzx.config.http.location.*;
+import ru.otr.nzx.config.http.server.HTTPServerConfig;
 import ru.otr.nzx.http.location.*;
-import ru.otr.nzx.postprocessing.NZXPostProcessor;
+import ru.otr.nzx.http.postprocessing.HTTPPostProcessor;
+import ru.otr.nzx.http.processing.HTTPProcessor;
 import ru.otr.nzx.util.NZXUtil;
 
-public class HTTPFiltersSource extends HttpFiltersSourceAdapter {
+public class LocationRouter extends HttpFiltersSourceAdapter {
 
     private final HTTPServerConfig config;
-    private final Map<LocationConfig, Processor> processors;
-    private final NZXPostProcessor postProcessor;
+    private final Map<String, HTTPProcessor> processors;
+    private final HTTPPostProcessor postProcessor;
     private final Tracer tracer;
 
-    public HTTPFiltersSource(HTTPServerConfig config, Map<LocationConfig, Processor> processors, NZXPostProcessor postProcessor, Tracer tracer) {
+    public LocationRouter(HTTPServerConfig config, Map<String, HTTPProcessor> processors, HTTPPostProcessor postProcessor, Tracer tracer) {
         this.config = config;
         this.processors = processors;
         this.postProcessor = postProcessor;
@@ -59,7 +60,8 @@ public class HTTPFiltersSource extends HttpFiltersSourceAdapter {
                         return new FileLocation(request, ctx, requestDateTime, requestID, requestURI, locCfg, postProcessor,
                                 tracer.getSubtracer(locCfg.getName()));
                     case PROCESSOR:
-                        return processors.get(locCfg).makeLocation(request, ctx, requestDateTime, requestID, requestURI);
+                        return processors.get(locCfg.processor_name).makeLocation(request, ctx, requestDateTime, requestID, requestURI, locCfg, postProcessor,
+                                tracer.getSubtracer(locCfg.getName()));
                     default:
                         return new Location(request, ctx, requestDateTime, requestID, requestURI, locCfg, postProcessor, tracer.getSubtracer(locCfg.getName()));
                     }

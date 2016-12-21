@@ -1,6 +1,6 @@
 package ru.otr.nzx;
 
 public class NZXConstants {
-    public final static String NZX_VERSION = "1.4.1";
+    public final static String NZX_VERSION = "1.5.0";
 
 }

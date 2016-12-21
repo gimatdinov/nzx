@@ -1,12 +1,12 @@
 package ru.otr.nzx.extra.postprocessing;
 
 import cxc.jex.tracer.Tracer;
-import ru.otr.nzx.http.HTTPServer.ObjectType;
-import ru.otr.nzx.postprocessing.NZXAction;
-import ru.otr.nzx.postprocessing.NZXTank;
+import ru.otr.nzx.http.postprocessing.HTTPMessageAction;
+import ru.otr.nzx.http.postprocessing.HTTPMessageTank;
+import ru.otr.nzx.http.server.HTTPServer.ObjectType;
 import ru.otr.nzx.util.NZXUtil;
 
-public class FailHttpResponseProcessing extends NZXAction {
+public class FailHttpResponseProcessing extends HTTPMessageAction {
 
     public static final String MARKER = "marker";
     public static final String SC_400 = "SC_400";
@@ -19,16 +19,19 @@ public class FailHttpResponseProcessing extends NZXAction {
     private boolean not_success;
 
     @Override
-    public void process(NZXTank tank, Tracer tracer) {
+    public synchronized void applyParameters() throws Exception {
+        this.marker = getConfig().parameters.get(MARKER);
+        this.sc_400 = new Boolean(getConfig().parameters.get(SC_400));
+        this.sc_500 = new Boolean(getConfig().parameters.get(SC_500));
+        this.not_success = new Boolean(getConfig().parameters.get(NOT_SUCCESS));
+        getConfig().parametersUpdatedMark = false;
+    }
+
+    @Override
+    public void process(HTTPMessageTank tank, Tracer tracer) {
         if (getConfig().parametersUpdatedMark) {
             try {
-                synchronized (this) {
-                    this.marker = getConfig().parameters.get(MARKER);
-                    this.sc_400 = new Boolean(getConfig().parameters.get(SC_400));
-                    this.sc_500 = new Boolean(getConfig().parameters.get(SC_500));
-                    this.not_success = new Boolean(getConfig().parameters.get(NOT_SUCCESS));
-                    getConfig().parametersUpdatedMark = false;
-                }
+                applyParameters();
             } catch (Exception e) {
                 tracer.error("FailHttpResponseProcessing." + config.getName() + ".UpdateParameters.Error/NOTIFY_ADMIN", NZXUtil.tankToShortLine(tank), e);
             }

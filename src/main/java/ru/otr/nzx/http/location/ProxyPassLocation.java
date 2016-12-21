@@ -14,8 +14,8 @@ import io.netty.handler.codec.http.HttpRequest;
 import io.netty.handler.codec.http.HttpResponse;
 import io.netty.handler.codec.http.HttpHeaders.Names;
 import ru.otr.nzx.config.http.location.LocationConfig;
-import ru.otr.nzx.https.MITM;
-import ru.otr.nzx.postprocessing.NZXPostProcessor;
+import ru.otr.nzx.http.postprocessing.HTTPPostProcessor;
+import ru.otr.nzx.http.secure.MITM;
 import ru.otr.nzx.util.NZXUtil;
 
 public class ProxyPassLocation extends Location {
@@ -24,7 +24,7 @@ public class ProxyPassLocation extends Location {
     private URI passURI;
 
     public ProxyPassLocation(HttpRequest originalRequest, ChannelHandlerContext ctx, Date requestDateTime, String requestID, URI requestURI,
-            LocationConfig config, NZXPostProcessor postProcessor, Tracer tracer) {
+            LocationConfig config, HTTPPostProcessor postProcessor, Tracer tracer) {
         super(originalRequest, ctx, requestDateTime, requestID, requestURI, config, postProcessor, tracer);
         try {
             this.passURI = makePassURI(requestURI, config);

@@ -1,4 +1,4 @@
-package ru.otr.nzx.extra.dumpsearch;
+package ru.otr.nzx.extra.dumping;
 
 import java.io.IOException;
 import java.net.URI;
@@ -17,7 +17,7 @@ import io.netty.handler.codec.http.HttpRequest;
 import io.netty.handler.codec.http.HttpResponse;
 import ru.otr.nzx.config.http.location.LocationConfig;
 import ru.otr.nzx.http.location.Location;
-import ru.otr.nzx.postprocessing.NZXPostProcessor;
+import ru.otr.nzx.http.postprocessing.HTTPPostProcessor;
 import ru.otr.nzx.util.NZXUtil;
 
 public class DumpSearchLocation extends Location {
@@ -29,7 +29,7 @@ public class DumpSearchLocation extends Location {
 	private final DumpSearchProcessor processor;
 
 	public DumpSearchLocation(DumpSearchProcessor processor, HttpRequest originalRequest, ChannelHandlerContext ctx, Date requestDateTime, String requestID,
-	        URI requestURI, LocationConfig config, NZXPostProcessor postProcessor, Tracer tracer) {
+	        URI requestURI, LocationConfig config, HTTPPostProcessor postProcessor, Tracer tracer) {
 		super(originalRequest, ctx, requestDateTime, requestID, requestURI, config, postProcessor, tracer);
 		this.processor = processor;
 	}

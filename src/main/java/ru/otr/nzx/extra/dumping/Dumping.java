@@ -1,4 +1,4 @@
-package ru.otr.nzx.postprocessing;
+package ru.otr.nzx.extra.dumping;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -6,21 +6,38 @@ import java.io.IOException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 
-import cxc.jex.postprocessing.Action;
 import cxc.jex.tracer.Tracer;
+import ru.otr.nzx.http.postprocessing.HTTPMessageAction;
+import ru.otr.nzx.http.postprocessing.HTTPMessageTank;
+import ru.otr.nzx.util.NZXUtil;
 
-public class Dumping implements Action<NZXTank> {
+public class Dumping extends HTTPMessageAction {
+    public static final String DUMPS_STORE = "dumps_store";
+
     private static final DateFormat idDateFormat = new SimpleDateFormat("yyyy-MM-dd_HHmmss_SSS");
     private static final DateFormat dayDateFormat = new SimpleDateFormat("yyyy-MM-dd");
 
-    private final String dumps_store;
+    private String dumps_store;
 
-    public Dumping(String dumps_store) {
-        this.dumps_store = dumps_store;
+    @Override
+    public synchronized void applyParameters() throws Exception {
+        File store = new File(config.parameters.get(DUMPS_STORE)).getAbsoluteFile();
+        if (!store.exists() && !store.mkdirs()) {
+            throw new Exception("Cannot make directory [" + store.getPath() + "]");
+        }
+        this.dumps_store = store.toString();
+        getConfig().parametersUpdatedMark = false;
     }
 
     @Override
-    public void process(NZXTank tank, Tracer tracer) throws Exception {
+    public void process(HTTPMessageTank tank, Tracer tracer) throws Exception {
+        if (getConfig().parametersUpdatedMark) {
+            try {
+                applyParameters();
+            } catch (Exception e) {
+                tracer.error("Dumping." + config.getName() + ".UpdateParameters.Error/NOTIFY_ADMIN", NZXUtil.tankToShortLine(tank), e);
+            }
+        }
         if (isProcess(tank)) {
             String fullPath = dumps_store + "/" + makePath(tank);
             tracer.debug("Dumping", makePath(tank) + " size=" + tank.getBuffer().getContentLength());
@@ -36,13 +53,13 @@ public class Dumping implements Action<NZXTank> {
         }
     }
 
-    public static boolean isProcess(NZXTank tank) {
-        return (tank.dumping_enable && tank.getBuffer().getContentLength() > 0);
+    public static boolean isProcess(HTTPMessageTank tank) {
+        return ("POST".equals(tank.httpMethod) && tank.getBuffer().getContentLength() > 0);
     }
 
-    public static String makePath(NZXTank tank) {
+    public static String makePath(HTTPMessageTank tank) {
         StringBuilder path = new StringBuilder();
-        path.append(tank.location_name);
+        path.append(tank.locationName);
         path.append("/");
         path.append(dayDateFormat.format(tank.requestDateTime));
         path.append("/");

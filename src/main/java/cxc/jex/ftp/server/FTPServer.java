@@ -7,7 +7,7 @@ import org.apache.ftpserver.ftplet.FtpException;
 
 import cxc.jex.tracer.Tracer;
 
-public abstract class FTPServer {
+public class FTPServer {
     protected final Tracer tracer;
     protected FtpServer srv;
 
@@ -15,7 +15,7 @@ public abstract class FTPServer {
         this.tracer = tracer;
     }
 
-    public void init(String host, int port, boolean activeEnable, String passivePorts, String directory, boolean anonymousEnable) {
+    public void bootstrap(String host, int port, boolean activeEnable, String passivePorts, String directory, boolean anonymousEnable) {
         tracer.info("Bootstrap", "listen " + host + ":" + port);
         FTPUserManager ftpUserManager = new FTPUserManager(directory, anonymousEnable);
         FtpServerFactory serverFactory = new FtpServerFactory();

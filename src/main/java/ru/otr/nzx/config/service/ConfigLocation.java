@@ -22,15 +22,15 @@ import ru.otr.nzx.config.Config;
 import ru.otr.nzx.config.SimpleConfig;
 import ru.otr.nzx.config.http.location.LocationConfig;
 import ru.otr.nzx.config.http.location.LocationConfigMap;
-import ru.otr.nzx.config.postprocessing.ActionConfig;
+import ru.otr.nzx.config.http.postprocessing.ActionConfig;
 import ru.otr.nzx.util.NZXUtil;
 
 public class ConfigLocation extends HttpFiltersAdapter {
     private final Tracer tracer;
-    private final NZXConfigService cfgService;
+    private final ConfigService cfgService;
     private URI cfgURI;
 
-    public ConfigLocation(HttpRequest originalRequest, ChannelHandlerContext ctx, Date requestDateTime, String requestID, NZXConfigService cfgService,
+    public ConfigLocation(HttpRequest originalRequest, ChannelHandlerContext ctx, Date requestDateTime, String requestID, ConfigService cfgService,
             Tracer tracer) {
         super(originalRequest, ctx);
         this.cfgService = cfgService;

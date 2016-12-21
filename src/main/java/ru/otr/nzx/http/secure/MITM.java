@@ -1,4 +1,4 @@
-package ru.otr.nzx.https;
+package ru.otr.nzx.http.secure;
 
 import java.util.Map.Entry;
 

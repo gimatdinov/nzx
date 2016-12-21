@@ -17,15 +17,14 @@ import io.netty.handler.codec.http.HttpResponse;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import io.netty.handler.codec.http.HttpHeaders.Names;
 import io.netty.handler.codec.http.HttpHeaders.Values;
-import io.netty.handler.codec.http.HttpMethod;
 import ru.otr.nzx.config.http.location.LocationConfig;
-import ru.otr.nzx.http.HTTPServer.ObjectType;
-import ru.otr.nzx.postprocessing.NZXPostProcessor;
-import ru.otr.nzx.postprocessing.NZXTank;
+import ru.otr.nzx.http.postprocessing.HTTPPostProcessor;
+import ru.otr.nzx.http.server.HTTPServer.ObjectType;
+import ru.otr.nzx.http.postprocessing.HTTPMessageTank;
 
 public class Location extends HttpFiltersAdapter {
 
-    protected final NZXPostProcessor postProcessor;
+    protected final HTTPPostProcessor postProcessor;
     protected final Tracer tracer;
 
     protected final Date requestDateTime;
@@ -35,7 +34,7 @@ public class Location extends HttpFiltersAdapter {
     protected final LocationConfig config;
 
     public Location(HttpRequest originalRequest, ChannelHandlerContext ctx, Date requestDateTime, String requestID, URI requestURI, LocationConfig config,
-            NZXPostProcessor postProcessor, Tracer tracer) {
+            HTTPPostProcessor postProcessor, Tracer tracer) {
         super(originalRequest, ctx);
         this.requestDateTime = requestDateTime;
         this.requestID = requestID;
@@ -59,8 +58,9 @@ public class Location extends HttpFiltersAdapter {
     }
 
     protected void putToPostProcessor(HttpObject httpObject) {
-        NZXTank tank = new NZXTank();
-        tank.location_name = config.getName();
+        HTTPMessageTank tank = new HTTPMessageTank();
+        tank.locationName = config.getName();
+        tank.httpMethod = originalRequest.getMethod().name();
         tank.requestID = requestID;
         tank.requestDateTime = requestDateTime;
         tank.requestURI = requestURI;
@@ -80,9 +80,6 @@ public class Location extends HttpFiltersAdapter {
             FullHttpMessage msg = (FullHttpMessage) httpObject;
             postProcessor.attachBuffer(tank, msg.content().readableBytes());
             tank.writeContent(msg.content());
-            if (postProcessor.isDumpingAll() || HttpMethod.POST.equals(originalRequest.getMethod())) {
-                tank.dumping_enable = config.dumping_enable;
-            }
         }
         postProcessor.put(tank);
 

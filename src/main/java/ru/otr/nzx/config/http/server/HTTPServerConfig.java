@@ -1,4 +1,4 @@
-package ru.otr.nzx.config.http;
+package ru.otr.nzx.config.http.server;
 
 import java.net.URISyntaxException;
 
@@ -9,7 +9,7 @@ import org.slf4j.LoggerFactory;
 import ru.otr.nzx.config.Config;
 import ru.otr.nzx.config.http.location.LocationConfig;
 import ru.otr.nzx.config.http.location.LocationConfigMap;
-import ru.otr.nzx.config.postprocessing.PostProcessorConfig;
+import ru.otr.nzx.config.http.postprocessing.PostProcessorConfig;
 
 public class HTTPServerConfig extends Config {
     private final static Logger log = LoggerFactory.getLogger(HTTPServerConfig.class);

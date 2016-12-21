@@ -18,8 +18,8 @@ import io.netty.handler.codec.http.HttpVersion;
 import io.netty.handler.codec.http.HttpHeaders.Names;
 import io.netty.handler.codec.http.HttpHeaders.Values;
 import ru.otr.nzx.NZXConstants;
-import ru.otr.nzx.http.HTTPServer.ObjectType;
-import ru.otr.nzx.postprocessing.NZXTank;
+import ru.otr.nzx.http.postprocessing.HTTPMessageTank;
+import ru.otr.nzx.http.server.HTTPServer.ObjectType;
 
 public class NZXUtil {
 	private static final DateFormat idDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
@@ -68,7 +68,7 @@ public class NZXUtil {
 		return result.toString();
 	}
 
-	public static String tankToShortLine(NZXTank tank) {
+	public static String tankToShortLine(HTTPMessageTank tank) {
 		StringBuilder result = new StringBuilder();
 		result.append(idDateFormat.format(tank.requestDateTime));
 		result.append(" ");

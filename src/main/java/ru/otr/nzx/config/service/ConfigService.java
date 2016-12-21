@@ -32,10 +32,10 @@ import ru.otr.nzx.config.SimpleConfig;
 import ru.otr.nzx.config.http.location.LocationConfig;
 import ru.otr.nzx.config.http.location.LocationConfigMap;
 import ru.otr.nzx.config.http.location.LocationConfig.LocationType;
-import ru.otr.nzx.config.postprocessing.ActionConfig;
+import ru.otr.nzx.config.http.postprocessing.ActionConfig;
 import ru.otr.nzx.util.NZXUtil;
 
-public class NZXConfigService {
+public class ConfigService {
     private final Tracer tracer;
 
     public final static String DEFAULT_CONFIG_PATHNAME = "config" + File.separator + "nzx.conf";
@@ -47,7 +47,7 @@ public class NZXConfigService {
     private HttpProxyServerBootstrap srvBootstrap;
     private HttpProxyServer srv;
 
-    public NZXConfigService(File nzxConfig, Tracer tracer) throws URISyntaxException, ClassNotFoundException, JSONException, IOException {
+    public ConfigService(File nzxConfig, Tracer tracer) throws URISyntaxException, ClassNotFoundException, JSONException, IOException {
         this.tracer = tracer.getSubtracer(SERVICE_NAME);
         if (nzxConfig.exists()) {
             tracer.info("Main.Config.File", nzxConfig.getPath());
@@ -96,7 +96,7 @@ public class NZXConfigService {
 
     public void bootstrap() {
         tracer.info("Bootstrap", "listen localhost:" + nzx.config_service_port);
-        final NZXConfigService cfgService = this;
+        final ConfigService cfgService = this;
         srvBootstrap = DefaultHttpProxyServer.bootstrap().withName(SERVICE_NAME).withAddress(new InetSocketAddress("localhost", nzx.config_service_port));
 
         srvBootstrap.withFiltersSource(new HttpFiltersSourceAdapter() {

@@ -1,4 +1,4 @@
-package ru.otr.nzx.postprocessing;
+package ru.otr.nzx.http.postprocessing;
 
 import java.net.URI;
 import java.util.Date;
@@ -7,9 +7,9 @@ import java.util.Map;
 
 import cxc.jex.postprocessing.Tank;
 import io.netty.buffer.ByteBuf;
-import ru.otr.nzx.http.HTTPServer.ObjectType;
+import ru.otr.nzx.http.server.HTTPServer.ObjectType;
 
-public class NZXTank extends Tank {
+public class HTTPMessageTank extends Tank {
     public ObjectType type;
     public Date requestDateTime;
     public String requestID;
@@ -17,8 +17,8 @@ public class NZXTank extends Tank {
     public int responseStatusCode;
     public boolean success;
     
-    public String location_name;
-    public boolean dumping_enable;
+    public String locationName;
+    public String httpMethod;
 
     public final Map<String, String> properties = new HashMap<>();
 

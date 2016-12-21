@@ -16,7 +16,6 @@ public class LocationConfig extends Config {
     public final static String PATH = "path";
     public final static String ENABLE = "enable";
     public final static String POST_PROCESSING_ENABLE = "post_processing_enable";
-    public final static String DUMPING_ENABLE = "dumping_enable";
 
     public final static String PROXY_PASS = "proxy_pass";
     public final static String PROXY_SET_HEADERS = "proxy_set_headers";
@@ -24,14 +23,12 @@ public class LocationConfig extends Config {
     public final static String FILE = "file";
     public final static String MIME_TYPE = "mime_type";
 
-    public final static String PROCESSOR_CLASS = "processor_class";
-    public final static String PROCESSOR_PARAMETERS = "processor_parameters";
+    public final static String PROCESSOR_NAME = "processor_name";
 
     public LocationType type;
     public final String path;
     public boolean enable;
     public boolean post_processing_enable;
-    public final boolean dumping_enable;
 
     public URI proxy_pass;
     public final SimpleConfig proxy_set_headers;
@@ -39,19 +36,16 @@ public class LocationConfig extends Config {
     public final String file;
     public final String mimeType;
 
-    public final String processor_class;
-    public final SimpleConfig processor_parameters;
+    public final String processor_name;
 
     public LocationConfig(String name, String path, LocationConfigMap locations) throws URISyntaxException {
         super(name, locations);
         this.path = new URI(path).normalize().getPath();
         locations.put(path, this);
         proxy_set_headers = new SimpleConfig(PROXY_SET_HEADERS, this);
-        dumping_enable = false;
         file = null;
         mimeType = null;
-        processor_class = null;
-        processor_parameters = new SimpleConfig(PROCESSOR_PARAMETERS, this);
+        processor_name = null;
     }
 
     LocationConfig(JSONObject src, LocationConfigMap locations) throws URISyntaxException {
@@ -59,7 +53,6 @@ public class LocationConfig extends Config {
         path = new URI(src.getString(PATH)).normalize().getPath();
         enable = src.optBoolean(ENABLE, true);
         post_processing_enable = src.optBoolean(POST_PROCESSING_ENABLE, false);
-        dumping_enable = src.optBoolean(DUMPING_ENABLE, false);
 
         if (src.has(PROXY_PASS)) {
             type = LocationType.PROXY_PASS;
@@ -79,16 +72,14 @@ public class LocationConfig extends Config {
             mimeType = null;
         }
 
-        if (src.has(PROCESSOR_CLASS)) {
+        if (src.has(PROCESSOR_NAME)) {
             if (type != null) {
-                throw new IllegalArgumentException("Incompatible {" + PROXY_PASS + ", " + FILE + ", " + PROCESSOR_CLASS + "}");
+                throw new IllegalArgumentException("Incompatible {" + PROXY_PASS + ", " + FILE + ", " + PROCESSOR_NAME + "}");
             }
             type = LocationType.PROCESSOR;
-            processor_class = src.getString(PROCESSOR_CLASS);
-            processor_parameters = new SimpleConfig(src.optJSONObject(PROCESSOR_PARAMETERS), PROCESSOR_PARAMETERS, this);
+            processor_name = src.getString(PROCESSOR_NAME);
         } else {
-            processor_class = null;
-            processor_parameters = null;
+            processor_name = null;
         }
 
         if (type == null) {
@@ -102,9 +93,7 @@ public class LocationConfig extends Config {
         json.put(NAME, name);
         json.put(PATH, path);
         json.put(ENABLE, enable);
-
         json.put(POST_PROCESSING_ENABLE, post_processing_enable);
-        json.put(DUMPING_ENABLE, dumping_enable);
 
         if (type == LocationType.PROXY_PASS) {
             json.put(PROXY_PASS, proxy_pass);
@@ -117,8 +106,7 @@ public class LocationConfig extends Config {
         }
 
         if (type == LocationType.PROCESSOR) {
-            json.put(PROCESSOR_CLASS, processor_class);
-            json.put(PROCESSOR_PARAMETERS, processor_parameters.toJSON());
+            json.put(PROCESSOR_NAME, processor_name);
         }
 
         return json;

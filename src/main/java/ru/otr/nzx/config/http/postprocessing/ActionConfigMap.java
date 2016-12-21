@@ -1,4 +1,4 @@
-package ru.otr.nzx.config.postprocessing;
+package ru.otr.nzx.config.http.postprocessing;
 
 import java.net.URISyntaxException;
 

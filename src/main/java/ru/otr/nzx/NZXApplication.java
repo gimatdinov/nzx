@@ -19,7 +19,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 import cxc.jex.tracer.Tracer;
 import cxc.jex.tracer.logback.LogbackTracer;
-import ru.otr.nzx.config.service.NZXConfigService;
+import ru.otr.nzx.config.service.ConfigService;
 
 @SpringBootApplication
 public class NZXApplication implements CommandLineRunner {
@@ -47,14 +47,14 @@ public class NZXApplication implements CommandLineRunner {
         HelpFormatter formatter = new HelpFormatter();
         CommandLineParser parser = new DefaultParser();
         try {
-            File configFile = new File(NZXConfigService.DEFAULT_CONFIG_PATHNAME).getAbsoluteFile();
+            File configFile = new File(ConfigService.DEFAULT_CONFIG_PATHNAME).getAbsoluteFile();
             CommandLine cmdLine = parser.parse(options, args);
             if (cmdLine.getOptionValue(OPTION_CONFIG) != null) {
                 configFile = new File(cmdLine.getOptionValue(OPTION_CONFIG)).getAbsoluteFile();
             }
             Tracer tracer = new LogbackTracer("NZX");
             tracer.info("Loading", "NZX version: " + NZXConstants.NZX_VERSION);
-            NZXConfigService cfgService = new NZXConfigService(configFile, tracer);
+            ConfigService cfgService = new ConfigService(configFile, tracer);
             if (cmdLine.getOptionValue(OPTION_SERVER_NAME) != null) {
                 cfgService.nzx().setServerName(cmdLine.getOptionValue(OPTION_SERVER_NAME));
             }     
