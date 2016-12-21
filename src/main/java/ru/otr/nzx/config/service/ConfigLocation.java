@@ -18,11 +18,11 @@ import io.netty.handler.codec.http.HttpObject;
 import io.netty.handler.codec.http.HttpRequest;
 import io.netty.handler.codec.http.HttpResponse;
 import io.netty.handler.codec.http.HttpVersion;
-import ru.otr.nzx.config.Config;
-import ru.otr.nzx.config.SimpleConfig;
-import ru.otr.nzx.config.http.location.LocationConfig;
-import ru.otr.nzx.config.http.location.LocationConfigMap;
-import ru.otr.nzx.config.http.postprocessing.ActionConfig;
+import ru.otr.nzx.config.model.ActionConfig;
+import ru.otr.nzx.config.model.Config;
+import ru.otr.nzx.config.model.LocationConfig;
+import ru.otr.nzx.config.model.LocationConfigMap;
+import ru.otr.nzx.config.model.SimpleConfig;
 import ru.otr.nzx.util.NZXUtil;
 
 public class ConfigLocation extends HttpFiltersAdapter {

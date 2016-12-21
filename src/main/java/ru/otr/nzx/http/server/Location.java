@@ -1,4 +1,4 @@
-package ru.otr.nzx.http.location;
+package ru.otr.nzx.http.server;
 
 import java.net.URI;
 import java.util.Date;
@@ -17,14 +17,14 @@ import io.netty.handler.codec.http.HttpResponse;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import io.netty.handler.codec.http.HttpHeaders.Names;
 import io.netty.handler.codec.http.HttpHeaders.Values;
-import ru.otr.nzx.config.http.location.LocationConfig;
-import ru.otr.nzx.http.postprocessing.HTTPPostProcessor;
-import ru.otr.nzx.http.server.HTTPServer.ObjectType;
-import ru.otr.nzx.http.postprocessing.HTTPMessageTank;
+import ru.otr.nzx.config.model.LocationConfig;
+import ru.otr.nzx.http.postprocessing.NZXPostProcessor;
+import ru.otr.nzx.http.postprocessing.NZXTank;
+import ru.otr.nzx.http.server.Server.ObjectType;
 
 public class Location extends HttpFiltersAdapter {
 
-    protected final HTTPPostProcessor postProcessor;
+    protected final NZXPostProcessor postProcessor;
     protected final Tracer tracer;
 
     protected final Date requestDateTime;
@@ -34,7 +34,7 @@ public class Location extends HttpFiltersAdapter {
     protected final LocationConfig config;
 
     public Location(HttpRequest originalRequest, ChannelHandlerContext ctx, Date requestDateTime, String requestID, URI requestURI, LocationConfig config,
-            HTTPPostProcessor postProcessor, Tracer tracer) {
+            NZXPostProcessor postProcessor, Tracer tracer) {
         super(originalRequest, ctx);
         this.requestDateTime = requestDateTime;
         this.requestID = requestID;
@@ -48,9 +48,7 @@ public class Location extends HttpFiltersAdapter {
     public HttpResponse clientToProxyRequest(HttpObject httpObject) {
         tracer.info("HTTP." + HttpResponseStatus.NO_CONTENT.code(), requestURI.getPath());
         if (httpObject instanceof HttpRequest) {
-            if (config.post_processing_enable) {
-                putToPostProcessor(httpObject);
-            }
+            putToPostProcessor(httpObject);
         }
         FullHttpResponse response = new DefaultFullHttpResponse(originalRequest.getProtocolVersion(), HttpResponseStatus.NO_CONTENT);
         HttpHeaders.setHeader(response, Names.CONNECTION, Values.CLOSE);
@@ -58,30 +56,31 @@ public class Location extends HttpFiltersAdapter {
     }
 
     protected void putToPostProcessor(HttpObject httpObject) {
-        HTTPMessageTank tank = new HTTPMessageTank();
-        tank.locationName = config.getName();
-        tank.httpMethod = originalRequest.getMethod().name();
-        tank.requestID = requestID;
-        tank.requestDateTime = requestDateTime;
-        tank.requestURI = requestURI;
-        tank.success = httpObject.getDecoderResult().isSuccess();
+        if (postProcessor != null) {
+            NZXTank tank = new NZXTank();
+            tank.locationName = config.getName();
+            tank.httpMethod = originalRequest.getMethod().name();
+            tank.requestID = requestID;
+            tank.requestDateTime = requestDateTime;
+            tank.requestURI = requestURI;
+            tank.success = httpObject.getDecoderResult().isSuccess();
 
-        if (httpObject instanceof HttpRequest) {
-            tank.type = ObjectType.REQ;
-            tank.responseStatusCode = 0;
+            if (httpObject instanceof HttpRequest) {
+                tank.type = ObjectType.REQ;
+                tank.responseStatusCode = 0;
 
+            }
+            if (httpObject instanceof HttpResponse) {
+                tank.type = ObjectType.RES;
+                tank.responseStatusCode = ((HttpResponse) httpObject).getStatus().code();
+            }
+
+            if (httpObject instanceof FullHttpMessage) {
+                FullHttpMessage msg = (FullHttpMessage) httpObject;
+                postProcessor.attachBuffer(tank, msg.content().readableBytes());
+                tank.writeContent(msg.content());
+            }
+            postProcessor.put(tank);
         }
-        if (httpObject instanceof HttpResponse) {
-            tank.type = ObjectType.RES;
-            tank.responseStatusCode = ((HttpResponse) httpObject).getStatus().code();
-        }
-
-        if (httpObject instanceof FullHttpMessage) {
-            FullHttpMessage msg = (FullHttpMessage) httpObject;
-            postProcessor.attachBuffer(tank, msg.content().readableBytes());
-            tank.writeContent(msg.content());
-        }
-        postProcessor.put(tank);
-
     }
 }

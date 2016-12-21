@@ -7,17 +7,22 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 
 import cxc.jex.tracer.Tracer;
-import ru.otr.nzx.http.postprocessing.HTTPMessageAction;
-import ru.otr.nzx.http.postprocessing.HTTPMessageTank;
+import ru.otr.nzx.config.model.ActionConfig;
+import ru.otr.nzx.http.postprocessing.NZXAction;
+import ru.otr.nzx.http.postprocessing.NZXTank;
 import ru.otr.nzx.util.NZXUtil;
 
-public class Dumping extends HTTPMessageAction {
+public class Dumping extends NZXAction {
     public static final String DUMPS_STORE = "dumps_store";
 
     private static final DateFormat idDateFormat = new SimpleDateFormat("yyyy-MM-dd_HHmmss_SSS");
     private static final DateFormat dayDateFormat = new SimpleDateFormat("yyyy-MM-dd");
 
     private String dumps_store;
+
+    public Dumping(ActionConfig config) {
+        super(config);
+    }
 
     @Override
     public synchronized void applyParameters() throws Exception {
@@ -26,12 +31,12 @@ public class Dumping extends HTTPMessageAction {
             throw new Exception("Cannot make directory [" + store.getPath() + "]");
         }
         this.dumps_store = store.toString();
-        getConfig().parametersUpdatedMark = false;
+        config.parameters.updatedMark = false;
     }
 
     @Override
-    public void process(HTTPMessageTank tank, Tracer tracer) throws Exception {
-        if (getConfig().parametersUpdatedMark) {
+    public void process(NZXTank tank, Tracer tracer) throws Exception {
+        if (config.parameters.updatedMark) {
             try {
                 applyParameters();
             } catch (Exception e) {
@@ -53,11 +58,11 @@ public class Dumping extends HTTPMessageAction {
         }
     }
 
-    public static boolean isProcess(HTTPMessageTank tank) {
+    public static boolean isProcess(NZXTank tank) {
         return ("POST".equals(tank.httpMethod) && tank.getBuffer().getContentLength() > 0);
     }
 
-    public static String makePath(HTTPMessageTank tank) {
+    public static String makePath(NZXTank tank) {
         StringBuilder path = new StringBuilder();
         path.append(tank.locationName);
         path.append("/");

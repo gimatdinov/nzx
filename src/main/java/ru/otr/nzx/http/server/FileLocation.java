@@ -1,4 +1,4 @@
-package ru.otr.nzx.http.location;
+package ru.otr.nzx.http.server;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -23,14 +23,14 @@ import io.netty.handler.codec.http.HttpResponse;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import io.netty.handler.codec.http.HttpHeaders.Names;
 import io.netty.handler.codec.http.HttpHeaders.Values;
-import ru.otr.nzx.config.http.location.LocationConfig;
-import ru.otr.nzx.http.postprocessing.HTTPPostProcessor;
+import ru.otr.nzx.config.model.LocationConfig;
+import ru.otr.nzx.http.postprocessing.NZXPostProcessor;
 import ru.otr.nzx.util.NZXUtil;
 
 public class FileLocation extends Location {
 
     public FileLocation(HttpRequest originalRequest, ChannelHandlerContext ctx, Date requestDateTime, String requestID, URI requestURI, LocationConfig config,
-            HTTPPostProcessor postProcessor, Tracer tracer) {
+            NZXPostProcessor postProcessor, Tracer tracer) {
         super(originalRequest, ctx, requestDateTime, requestID, requestURI, config, postProcessor, tracer);
     }
 
@@ -40,9 +40,7 @@ public class FileLocation extends Location {
         tracer.info("File", file.getPath());
 
         if (httpObject instanceof HttpRequest) {
-            if (config.post_processing_enable) {
-                putToPostProcessor(httpObject);
-            }
+            putToPostProcessor(httpObject);
         }
 
         FileInputStream fis = null;

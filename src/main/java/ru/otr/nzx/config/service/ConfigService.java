@@ -26,37 +26,36 @@ import ch.qos.logback.core.util.StatusPrinter;
 import cxc.jex.tracer.Tracer;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.http.HttpRequest;
-import ru.otr.nzx.config.Config;
-import ru.otr.nzx.config.NZXConfig;
-import ru.otr.nzx.config.SimpleConfig;
-import ru.otr.nzx.config.http.location.LocationConfig;
-import ru.otr.nzx.config.http.location.LocationConfigMap;
-import ru.otr.nzx.config.http.location.LocationConfig.LocationType;
-import ru.otr.nzx.config.http.postprocessing.ActionConfig;
+import ru.otr.nzx.config.model.ActionConfig;
+import ru.otr.nzx.config.model.Config;
+import ru.otr.nzx.config.model.LocationConfig;
+import ru.otr.nzx.config.model.LocationConfigMap;
+import ru.otr.nzx.config.model.NZXConfig;
+import ru.otr.nzx.config.model.SimpleConfig;
+import ru.otr.nzx.config.model.LocationConfig.LocationType;
 import ru.otr.nzx.util.NZXUtil;
 
 public class ConfigService {
-    private final Tracer tracer;
-
     public final static String DEFAULT_CONFIG_PATHNAME = "config" + File.separator + "nzx.conf";
     public final static String PROPERTY_NZX_LOG = "nzx_log";
-    public final static String SERVICE_NAME = "#ConfigService";
+    public final static String SERVICE_NAME = "ConfigService";
 
+    private final Tracer tracer;
     private final NZXConfig nzx;
 
     private HttpProxyServerBootstrap srvBootstrap;
     private HttpProxyServer srv;
 
-    public ConfigService(File nzxConfig, Tracer tracer) throws URISyntaxException, ClassNotFoundException, JSONException, IOException {
+    public ConfigService(File nzxConfigFile, Tracer tracer) throws URISyntaxException, ClassNotFoundException, JSONException, IOException {
         this.tracer = tracer.getSubtracer(SERVICE_NAME);
-        if (nzxConfig.exists()) {
-            tracer.info("Main.Config.File", nzxConfig.getPath());
+        if (nzxConfigFile.exists()) {
+            this.tracer.info("NZX.Config.File", nzxConfigFile.getPath());
         } else {
-            tracer.error("Main.Config.File.NotFound", nzxConfig.getPath());
-            throw new FileNotFoundException(nzxConfig.getPath());
+            this.tracer.error("NZX.Config.File.NotFound", nzxConfigFile.getPath());
+            throw new FileNotFoundException(nzxConfigFile.getPath());
         }
 
-        String[] lines = new String(Files.readAllBytes(nzxConfig.toPath())).split("\n");
+        String[] lines = new String(Files.readAllBytes(nzxConfigFile.toPath())).split("\n");
         StringBuilder cleanCfg = new StringBuilder();
         for (String line : lines) {
             if (!line.trim().startsWith("//")) {
@@ -66,10 +65,39 @@ public class ConfigService {
         }
         this.nzx = new NZXConfig(new JSONObject(cleanCfg.toString()));
         if (nzx.log_config != null) {
-            loadLogConfig(nzxConfig.getParentFile().getPath() + File.separator + nzx.log_config, nzx.log);
+            loadLogConfig(nzxConfigFile.getParentFile().getPath() + File.separator + nzx.log_config, nzx.log);
         }
-        tracer.debug("Main.Config.Loaded", nzx.toString());
-        tracer.debug("Context", nzx.getContext().keySet().toString());
+        this.tracer.debug("NZX.Config.Loaded", nzx.toString());
+        this.tracer.debug("NZX.Config.Context", nzx.getContext().keySet().toString());
+    }
+
+    public void bootstrap() {
+        if (nzx.config_service_port > 0) {
+            srvBootstrap = DefaultHttpProxyServer.bootstrap().withName(ConfigService.SERVICE_NAME)
+                    .withAddress(new InetSocketAddress("localhost", nzx.config_service_port));
+            srvBootstrap.withFiltersSource(new HttpFiltersSourceAdapter() {
+                public HttpFilters filterRequest(HttpRequest request, ChannelHandlerContext ctx) {
+                    String requestID = NZXUtil.makeRequestID();
+                    Date requestDateTime = new Date();
+                    tracer.info("Request", NZXUtil.requestToLongLine(requestID, request, ctx, tracer.isDebugEnabled()));
+                    return new ConfigLocation(request, ctx, requestDateTime, requestID, ConfigService.this, tracer);
+                }
+            });
+        }
+
+    }
+
+    public void start() {
+        if (nzx.config_service_port > 0) {
+            tracer.info("Listen", "localhost:" + nzx.config_service_port);
+            srv = srvBootstrap.start();
+        }
+    }
+
+    public void stop() {
+        if (nzx.config_service_port > 0) {
+            srv.stop();
+        }
     }
 
     public NZXConfig nzx() {
@@ -94,31 +122,6 @@ public class ConfigService {
         }
     }
 
-    public void bootstrap() {
-        tracer.info("Bootstrap", "listen localhost:" + nzx.config_service_port);
-        final ConfigService cfgService = this;
-        srvBootstrap = DefaultHttpProxyServer.bootstrap().withName(SERVICE_NAME).withAddress(new InetSocketAddress("localhost", nzx.config_service_port));
-
-        srvBootstrap.withFiltersSource(new HttpFiltersSourceAdapter() {
-            public HttpFilters filterRequest(HttpRequest request, ChannelHandlerContext ctx) {
-                String requestID = NZXUtil.makeRequestID();
-                Date requestDateTime = new Date();
-                tracer.info("Request", NZXUtil.requestToLongLine(requestID, request, ctx, tracer.isDebugEnabled()));
-                return new ConfigLocation(request, ctx, requestDateTime, requestID, cfgService, tracer);
-            }
-        });
-    }
-
-    public void start() {
-        tracer.info("Starting", "");
-        srv = srvBootstrap.start();
-    }
-
-    public void stop() {
-        srv.stop();
-        tracer.info("Stopped", "");
-    }
-
     public LocationConfig updateLocation(LocationConfig node, Map<String, String> parameters) throws URISyntaxException {
         synchronized (node) {
             if (parameters.containsKey(LocationConfig.ENABLE)) {
@@ -129,14 +132,6 @@ public class ConfigService {
                 node.type = LocationType.PROXY_PASS;
             }
             tracer.info("Location.Config.Update", node.getPathName() + "=" + node.toString());
-            return node;
-        }
-    }
-
-    public ActionConfig updateAction(ActionConfig node, Map<String, String> parameters) throws URISyntaxException {
-        synchronized (node) {
-            node.setParameters(parameters);
-            tracer.info("Action.Config.Update", node.getPathName() + "=" + node.toString());
             return node;
         }
     }
@@ -163,12 +158,20 @@ public class ConfigService {
         tracer.info("Location.Config.Delete", node.getPathName() + "=" + node.toString());
     }
 
-    public SimpleConfig update(SimpleConfig node, Map<String, String> parameters) {
+    public ActionConfig updateAction(ActionConfig node, Map<String, String> parameters) throws URISyntaxException {
         synchronized (node) {
-            node.putAll(parameters);
-            tracer.info(node.getName() + ".Config.Update", node.getPathName() + "=" + node.toString());
+            if (parameters.containsKey(LocationConfig.ENABLE)) {
+                node.enable = Boolean.valueOf(parameters.get(ActionConfig.ENABLE));
+            }
+            tracer.info("Action.Config.Update", node.getPathName() + "=" + node.toString());
             return node;
         }
+    }
+
+    public SimpleConfig update(SimpleConfig node, Map<String, String> parameters) {
+        node.putAll(parameters);
+        tracer.info(node.getName() + ".Config.Update", node.getPathName() + "=" + node.toString());
+        return node;
     }
 
     public SimpleConfig delete(SimpleConfig node) {

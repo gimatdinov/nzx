@@ -12,13 +12,7 @@ import cxc.jex.buffer.ByteBufferPool;
 import cxc.jex.tracer.Tracer;
 
 public abstract class PostProcessor<T extends Tank> {
-    public interface Action<T extends Tank> {
-        boolean isEnable();
-
-        abstract void process(T tank, Tracer tracer) throws Exception;
-    }
-    
-    private final Tracer tracer;
+    protected final Tracer tracer;
     private ExecutorService executor;
     boolean started = false;
 

@@ -4,7 +4,7 @@ import java.io.File;
 import java.util.HashSet;
 import java.util.Set;
 
-import ru.otr.nzx.config.http.processing.HTTPProcessorConfig;
+import ru.otr.nzx.config.model.ProcessorConfig;
 
 public class DumpSearchProcessorConfig {
     public static final String DUMPS_STORE = "dumps_store";
@@ -28,7 +28,7 @@ public class DumpSearchProcessorConfig {
     public final String ftp_directory;
     public final String ftp_uri;
 
-    public DumpSearchProcessorConfig(HTTPProcessorConfig src) {
+    public DumpSearchProcessorConfig(ProcessorConfig src) {
         dumps_store = new File(src.processor_parameters.get(DUMPS_STORE));
         skip_in_dumps_store.add(CONST_SEARCH_INDEX);
         if (src.processor_parameters.get(SKIP_IN_DUMPS_STORE) != null) {

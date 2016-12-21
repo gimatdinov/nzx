@@ -1,13 +1,10 @@
-package ru.otr.nzx.config.http.processing;
+package ru.otr.nzx.config.model;
 
 import java.net.URISyntaxException;
 
 import org.json.JSONObject;
 
-import ru.otr.nzx.config.Config;
-import ru.otr.nzx.config.SimpleConfig;
-
-public class HTTPProcessorConfig extends Config {
+public class ProcessorConfig extends Config {
     public final static String ENABLE = "enable";
     public final static String PROCESSOR_CLASS = "processor_class";
     public final static String PROCESSOR_PARAMETERS = "processor_parameters";
@@ -16,8 +13,8 @@ public class HTTPProcessorConfig extends Config {
     public final String processor_class;
     public final SimpleConfig processor_parameters;
 
-    HTTPProcessorConfig(JSONObject src, HTTPProcessorConfigMap processors) throws URISyntaxException {
-        super(src.getString(NAME), processors);
+    ProcessorConfig(JSONObject src, Config host) throws URISyntaxException {
+        super(src.getString(NAME), host);
         enable = src.optBoolean(ENABLE, true);
         processor_class = src.getString(PROCESSOR_CLASS);
         processor_parameters = new SimpleConfig(src.optJSONObject(PROCESSOR_PARAMETERS), PROCESSOR_PARAMETERS, this);

@@ -9,6 +9,7 @@ import cxc.jex.tracer.Tracer;
 
 public class FTPServer {
     protected final Tracer tracer;
+    protected FTPListener listener;
     protected FtpServer srv;
 
     public FTPServer(Tracer tracer) {
@@ -16,7 +17,7 @@ public class FTPServer {
     }
 
     public void bootstrap(String host, int port, boolean activeEnable, String passivePorts, String directory, boolean anonymousEnable) {
-        tracer.info("Bootstrap", "listen " + host + ":" + port);
+        tracer.info("Bootstrap", "");
         FTPUserManager ftpUserManager = new FTPUserManager(directory, anonymousEnable);
         FtpServerFactory serverFactory = new FtpServerFactory();
         serverFactory.setUserManager(ftpUserManager);
@@ -27,15 +28,15 @@ public class FTPServer {
             tracer.info("PassivePorts", passivePorts);
             dcConfigFactory.setPassivePorts(passivePorts);
         }
-        FTPListener ftpListener = new FTPListener(host, port, dcConfigFactory.createDataConnectionConfiguration(), false);
-        serverFactory.addListener("default", ftpListener);
+        listener = new FTPListener(host, port, dcConfigFactory.createDataConnectionConfiguration(), false);
+        serverFactory.addListener("default", listener);
 
         serverFactory.getListeners();
         srv = serverFactory.createServer();
     }
 
     public void start() {
-        tracer.info("Starting", "");
+        tracer.info("Starting", "listen " + listener.getServerAddress() + ":" + listener.getPort());
         try {
             srv.start();
         } catch (FtpException e) {

@@ -21,7 +21,7 @@ class Worker<T extends Tank> implements Runnable {
             T tank = postProcessor.loadedTanks.poll();
             try {
                 if (tank != null) {
-                    for (PostProcessor.Action<T> action : postProcessor.actions) {
+                    for (Action<T> action : postProcessor.actions) {
                         if (action.isEnable()) {
                             try {
                                 action.process(tank, postProcessor.getTracer());

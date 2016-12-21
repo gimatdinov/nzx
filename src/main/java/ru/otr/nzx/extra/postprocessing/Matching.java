@@ -3,13 +3,13 @@ package ru.otr.nzx.extra.postprocessing;
 import java.io.ByteArrayOutputStream;
 
 import cxc.jex.tracer.Tracer;
-import ru.otr.nzx.http.postprocessing.HTTPMessageAction;
-import ru.otr.nzx.http.postprocessing.HTTPMessageTank;
-import ru.otr.nzx.http.server.HTTPServer.ObjectType;
+import ru.otr.nzx.config.model.ActionConfig;
+import ru.otr.nzx.http.postprocessing.NZXAction;
+import ru.otr.nzx.http.postprocessing.NZXTank;
+import ru.otr.nzx.http.server.Server.ObjectType;
 import ru.otr.nzx.util.NZXUtil;
 
-public class Matching extends HTTPMessageAction {
-
+public class Matching extends NZXAction {
     public static final String MARKER = "marker";
     public static final String OBJECT_TYPE = "object_type";
     public static final String CONTENT_LENGTH_MAX = "content_length_max";
@@ -22,19 +22,23 @@ public class Matching extends HTTPMessageAction {
     private String uri_regex;
     private String content_regex;
 
-    @Override
-    public synchronized void applyParameters() throws Exception {
-        this.marker = getConfig().parameters.get(MARKER);
-        this.object_type = ObjectType.valueOf(getConfig().parameters.get(OBJECT_TYPE));
-        this.сontent_length_max = Integer.valueOf(getConfig().parameters.get(CONTENT_LENGTH_MAX));
-        this.uri_regex = getConfig().parameters.get(URI_REGEX);
-        this.content_regex = getConfig().parameters.get(CONTENT_REGEX);
-        getConfig().parametersUpdatedMark = false;
+    public Matching(ActionConfig config) {
+        super(config);
     }
 
     @Override
-    public void process(HTTPMessageTank tank, Tracer tracer) throws Exception {
-        if (getConfig().parametersUpdatedMark) {
+    public synchronized void applyParameters() throws Exception {
+        marker = config.parameters.get(MARKER);
+        object_type = ObjectType.valueOf(config.parameters.get(OBJECT_TYPE));
+        сontent_length_max = Integer.valueOf(config.parameters.get(CONTENT_LENGTH_MAX));
+        uri_regex = config.parameters.get(URI_REGEX);
+        content_regex = config.parameters.get(CONTENT_REGEX);
+        config.parameters.updatedMark = false;
+    }
+
+    @Override
+    public void process(NZXTank tank, Tracer tracer) throws Exception {
+        if (config.parameters.updatedMark) {
             try {
                 applyParameters();
             } catch (Exception e) {

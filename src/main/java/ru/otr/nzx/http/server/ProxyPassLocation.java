@@ -1,4 +1,4 @@
-package ru.otr.nzx.http.location;
+package ru.otr.nzx.http.server;
 
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -13,9 +13,8 @@ import io.netty.handler.codec.http.HttpObject;
 import io.netty.handler.codec.http.HttpRequest;
 import io.netty.handler.codec.http.HttpResponse;
 import io.netty.handler.codec.http.HttpHeaders.Names;
-import ru.otr.nzx.config.http.location.LocationConfig;
-import ru.otr.nzx.http.postprocessing.HTTPPostProcessor;
-import ru.otr.nzx.http.secure.MITM;
+import ru.otr.nzx.config.model.LocationConfig;
+import ru.otr.nzx.http.postprocessing.NZXPostProcessor;
 import ru.otr.nzx.util.NZXUtil;
 
 public class ProxyPassLocation extends Location {
@@ -24,7 +23,7 @@ public class ProxyPassLocation extends Location {
     private URI passURI;
 
     public ProxyPassLocation(HttpRequest originalRequest, ChannelHandlerContext ctx, Date requestDateTime, String requestID, URI requestURI,
-            LocationConfig config, HTTPPostProcessor postProcessor, Tracer tracer) {
+            LocationConfig config, NZXPostProcessor postProcessor, Tracer tracer) {
         super(originalRequest, ctx, requestDateTime, requestID, requestURI, config, postProcessor, tracer);
         try {
             this.passURI = makePassURI(requestURI, config);
@@ -51,16 +50,12 @@ public class ProxyPassLocation extends Location {
                     HttpHeaders.setHeader(request, item.getKey(), item.getValue());
                 }
             }
-            if (config.post_processing_enable) {
-                putToPostProcessor(httpObject);
-            }
+            putToPostProcessor(httpObject);
             if (HTTPS_SCHEME.matcher(passURI.toString()).matches()) {
                 try {
                     response = new MITM().sendRequest(request);
                     tracer.info("Server.Response", "MITM " + NZXUtil.responseToShortLine(response));
-                    if (config.post_processing_enable) {
-                        putToPostProcessor(response);
-                    }
+                    putToPostProcessor(response);
                 } catch (Exception e) {
                     response = NZXUtil.makeFailureResponse(500, request.getProtocolVersion());
                     tracer.error("Server.Connection.Failed/PROXY_PASS_ERROR", "MITM", e);
@@ -81,10 +76,7 @@ public class ProxyPassLocation extends Location {
         if (httpObject instanceof HttpResponse) {
             HttpResponse response = (HttpResponse) httpObject;
             tracer.info("Server.Response", NZXUtil.responseToShortLine(response));
-
-            if (config.post_processing_enable) {
-                putToPostProcessor(response);
-            }
+            putToPostProcessor(response);
         }
         return httpObject;
     }

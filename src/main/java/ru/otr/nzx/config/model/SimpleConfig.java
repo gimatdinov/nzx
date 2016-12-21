@@ -1,4 +1,4 @@
-package ru.otr.nzx.config;
+package ru.otr.nzx.config.model;
 
 import java.net.URISyntaxException;
 import java.util.Collection;
@@ -10,7 +10,8 @@ import org.json.JSONObject;
 
 public class SimpleConfig extends Config implements Map<String, String> {
 
-    public final Map<String, String> map = new ConcurrentHashMap<>();
+    private final Map<String, String> map = new ConcurrentHashMap<>();
+    public boolean updatedMark = true;
 
     public SimpleConfig(String name, Config host) throws URISyntaxException {
         super(name, host);
@@ -63,21 +64,25 @@ public class SimpleConfig extends Config implements Map<String, String> {
 
     @Override
     public String put(String key, String value) {
+        updatedMark = true;
         return map.put(key, value);
     }
 
     @Override
     public String remove(Object key) {
+        updatedMark = true;
         return map.remove(key);
     }
 
     @Override
     public void putAll(Map<? extends String, ? extends String> m) {
+        updatedMark = true;
         map.putAll(m);
     }
 
     @Override
     public void clear() {
+        updatedMark = true;
         map.clear();
     }
 

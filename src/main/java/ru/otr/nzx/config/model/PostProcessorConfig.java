@@ -1,10 +1,8 @@
-package ru.otr.nzx.config.http.postprocessing;
+package ru.otr.nzx.config.model;
 
 import java.net.URISyntaxException;
 
 import org.json.JSONObject;
-
-import ru.otr.nzx.config.Config;
 
 public class PostProcessorConfig extends Config {
     public final static String ENABLE = "enable";
@@ -19,8 +17,8 @@ public class PostProcessorConfig extends Config {
     public final int workers;
     public final ActionConfigMap actions;
 
-    public PostProcessorConfig(JSONObject src, String name, Config host) throws URISyntaxException {
-        super(name, host);
+    public PostProcessorConfig(JSONObject src, Config host) throws URISyntaxException {
+        super(src.getString(NAME), host);
         enable = src.optBoolean(ENABLE, true);
         buffer_pool_size = src.getInt(BUFFER_POOL_SIZE);
         buffer_size_min = src.getInt(BUFFER_SIZE_MIN);
@@ -30,17 +28,18 @@ public class PostProcessorConfig extends Config {
 
     @Override
     public JSONObject toJSON() {
-        JSONObject server = new JSONObject();
+        JSONObject json = new JSONObject();
+        json.put(NAME, name);
         if (!enable) {
-            server.put(ENABLE, enable);
+            json.put(ENABLE, enable);
         }
-        server.put(BUFFER_POOL_SIZE, buffer_pool_size);
-        server.put(BUFFER_SIZE_MIN, buffer_size_min);
+        json.put(BUFFER_POOL_SIZE, buffer_pool_size);
+        json.put(BUFFER_SIZE_MIN, buffer_size_min);
         if (workers > 1) {
-            server.put(WORKERS, workers);
+            json.put(WORKERS, workers);
         }
-        server.put(ACTIONS, actions.toJSON());
-        return server;
+        json.put(ACTIONS, actions.toJSON());
+        return json;
     }
 
 }

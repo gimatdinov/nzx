@@ -8,45 +8,42 @@ import org.littleshoot.proxy.HttpProxyServerBootstrap;
 import org.littleshoot.proxy.impl.DefaultHttpProxyServer;
 
 import cxc.jex.tracer.Tracer;
-import ru.otr.nzx.config.http.location.LocationConfig;
-import ru.otr.nzx.config.http.location.LocationConfig.LocationType;
-import ru.otr.nzx.config.http.server.HTTPServerConfig;
-import ru.otr.nzx.http.postprocessing.HTTPPostProcessor;
-import ru.otr.nzx.http.processing.HTTPProcessor;
+import ru.otr.nzx.config.model.LocationConfig;
+import ru.otr.nzx.config.model.ServerConfig;
+import ru.otr.nzx.config.model.LocationConfig.LocationType;
+import ru.otr.nzx.http.postprocessing.NZXPostProcessor;
+import ru.otr.nzx.http.processing.Processor;
 
-public class HTTPServer {
+public class Server {
     public static enum ObjectType {
         REQ, RES
     }
 
     private final Tracer tracer;
-    private final HTTPServerConfig config;
-    private final Map<String, HTTPProcessor> processors;
+    private final ServerConfig config;
+    private final Map<String, Processor> processors;
+    private final Map<String, NZXPostProcessor> postProcessors;
     private HttpProxyServerBootstrap srvBootstrap;
     private HttpProxyServer srv;
-    private HTTPPostProcessor postProcessor;
 
-    public HTTPServer(HTTPServerConfig config, Map<String, HTTPProcessor> processors, Tracer tracer) {
+    public Server(ServerConfig config, Map<String, Processor> processors, Map<String, NZXPostProcessor> postProcessors, Tracer tracer) {
         this.tracer = tracer.getSubtracer(config.getName());
-        this.processors = processors;
         this.config = config;
-        if (config.post_processing != null && config.post_processing.enable) {
-            postProcessor = new HTTPPostProcessor(config.post_processing, processors, this.tracer.getSubtracer("#PostProcessor"));
-        }
+        this.processors = processors;
+        this.postProcessors = postProcessors;
     }
 
     public void bootstrap() {
-        tracer.info("Bootstrap", "listen " + config.listenHost + ":" + config.listenPort);
-        if (postProcessor != null) {
-            postProcessor.bootstrap();
-        }
+        tracer.info("Bootstrap", "");
         for (LocationConfig item : config.locations.values()) {
             if (item.enable) {
                 if (item.type == LocationType.PROCESSOR && processors.get(item.processor_name) == null) {
-                    throw new RuntimeException("HTTPProcessor with name \"" + item.processor_name + "\" not found, need for location [" + item.path + "]");
+                    throw new RuntimeException(
+                            "http.processors[name=\"" + item.processor_name + "\"] not found, need for locations[name=\"" + item.getName() + "\"]");
                 }
-                if (item.post_processing_enable && postProcessor == null) {
-                    throw new RuntimeException("post_processing not enabled, need for location [" + item.path + "]");
+                if (item.post_processor_name != null && postProcessors.get(item.post_processor_name) == null) {
+                    throw new RuntimeException(
+                            "http.post_processors[name=\"" + item.post_processor_name + "\"] not found, need for locations[name=\"" + item.getName() + "\"]");
                 }
             }
         }
@@ -57,7 +54,7 @@ public class HTTPServer {
         if (config.idle_connection_timeout > 0) {
             srvBootstrap.withIdleConnectionTimeout(config.idle_connection_timeout);
         }
-        srvBootstrap.withFiltersSource(new LocationRouter(config, processors, postProcessor, tracer));
+        srvBootstrap.withFiltersSource(new LocationRouter(config, processors, postProcessors, tracer));
 
         // srvBootstrap.withChainProxyManager(new ChainedProxyManager() {
         // public void lookupChainedProxies(HttpRequest httpRequest,
@@ -69,18 +66,12 @@ public class HTTPServer {
     }
 
     public void start() {
-        tracer.info("Starting", "");
-        if (postProcessor != null) {
-            postProcessor.start();
-        }
+        tracer.info("Starting", "listen " + config.listenHost + ":" + config.listenPort);
         srv = srvBootstrap.start();
     }
 
     public void stop() {
         srv.stop();
-        if (postProcessor != null) {
-            postProcessor.stop();
-        }
         tracer.info("Stopped", "");
     }
 

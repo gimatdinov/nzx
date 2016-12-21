@@ -1,13 +1,13 @@
 package ru.otr.nzx.extra.postprocessing;
 
 import cxc.jex.tracer.Tracer;
-import ru.otr.nzx.http.postprocessing.HTTPMessageAction;
-import ru.otr.nzx.http.postprocessing.HTTPMessageTank;
-import ru.otr.nzx.http.server.HTTPServer.ObjectType;
+import ru.otr.nzx.config.model.ActionConfig;
+import ru.otr.nzx.http.postprocessing.NZXAction;
+import ru.otr.nzx.http.postprocessing.NZXTank;
+import ru.otr.nzx.http.server.Server.ObjectType;
 import ru.otr.nzx.util.NZXUtil;
 
-public class FailHttpResponseProcessing extends HTTPMessageAction {
-
+public class FailHttpResponseProcessing extends NZXAction {
     public static final String MARKER = "marker";
     public static final String SC_400 = "SC_400";
     public static final String SC_500 = "SC_500";
@@ -18,18 +18,22 @@ public class FailHttpResponseProcessing extends HTTPMessageAction {
     private boolean sc_500;
     private boolean not_success;
 
-    @Override
-    public synchronized void applyParameters() throws Exception {
-        this.marker = getConfig().parameters.get(MARKER);
-        this.sc_400 = new Boolean(getConfig().parameters.get(SC_400));
-        this.sc_500 = new Boolean(getConfig().parameters.get(SC_500));
-        this.not_success = new Boolean(getConfig().parameters.get(NOT_SUCCESS));
-        getConfig().parametersUpdatedMark = false;
+    public FailHttpResponseProcessing(ActionConfig config) {
+        super(config);
     }
 
     @Override
-    public void process(HTTPMessageTank tank, Tracer tracer) {
-        if (getConfig().parametersUpdatedMark) {
+    public synchronized void applyParameters() throws Exception {
+        marker = config.parameters.get(MARKER);
+        sc_400 = new Boolean(config.parameters.get(SC_400));
+        sc_500 = new Boolean(config.parameters.get(SC_500));
+        not_success = new Boolean(config.parameters.get(NOT_SUCCESS));
+        config.parameters.updatedMark = false;
+    }
+
+    @Override
+    public void process(NZXTank tank, Tracer tracer) {
+        if (config.parameters.updatedMark) {
             try {
                 applyParameters();
             } catch (Exception e) {

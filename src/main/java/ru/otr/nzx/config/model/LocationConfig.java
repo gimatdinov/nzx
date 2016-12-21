@@ -1,12 +1,9 @@
-package ru.otr.nzx.config.http.location;
+package ru.otr.nzx.config.model;
 
 import java.net.URI;
 import java.net.URISyntaxException;
 
 import org.json.JSONObject;
-
-import ru.otr.nzx.config.Config;
-import ru.otr.nzx.config.SimpleConfig;
 
 public class LocationConfig extends Config {
     public static enum LocationType {
@@ -15,7 +12,6 @@ public class LocationConfig extends Config {
 
     public final static String PATH = "path";
     public final static String ENABLE = "enable";
-    public final static String POST_PROCESSING_ENABLE = "post_processing_enable";
 
     public final static String PROXY_PASS = "proxy_pass";
     public final static String PROXY_SET_HEADERS = "proxy_set_headers";
@@ -25,10 +21,11 @@ public class LocationConfig extends Config {
 
     public final static String PROCESSOR_NAME = "processor_name";
 
+    public final static String POST_PROCESSOR_NAME = "post_processor_name";
+
     public LocationType type;
     public final String path;
     public boolean enable;
-    public boolean post_processing_enable;
 
     public URI proxy_pass;
     public final SimpleConfig proxy_set_headers;
@@ -38,6 +35,8 @@ public class LocationConfig extends Config {
 
     public final String processor_name;
 
+    public final String post_processor_name;
+
     public LocationConfig(String name, String path, LocationConfigMap locations) throws URISyntaxException {
         super(name, locations);
         this.path = new URI(path).normalize().getPath();
@@ -46,13 +45,13 @@ public class LocationConfig extends Config {
         file = null;
         mimeType = null;
         processor_name = null;
+        post_processor_name = null;
     }
 
     LocationConfig(JSONObject src, LocationConfigMap locations) throws URISyntaxException {
         super(src.getString(NAME), locations);
         path = new URI(src.getString(PATH)).normalize().getPath();
         enable = src.optBoolean(ENABLE, true);
-        post_processing_enable = src.optBoolean(POST_PROCESSING_ENABLE, false);
 
         if (src.has(PROXY_PASS)) {
             type = LocationType.PROXY_PASS;
@@ -85,6 +84,8 @@ public class LocationConfig extends Config {
         if (type == null) {
             type = LocationType.EMPTY;
         }
+
+        post_processor_name = src.optString(POST_PROCESSOR_NAME, null);
     }
 
     @Override
@@ -93,7 +94,6 @@ public class LocationConfig extends Config {
         json.put(NAME, name);
         json.put(PATH, path);
         json.put(ENABLE, enable);
-        json.put(POST_PROCESSING_ENABLE, post_processing_enable);
 
         if (type == LocationType.PROXY_PASS) {
             json.put(PROXY_PASS, proxy_pass);
@@ -108,6 +108,8 @@ public class LocationConfig extends Config {
         if (type == LocationType.PROCESSOR) {
             json.put(PROCESSOR_NAME, processor_name);
         }
+
+        json.put(POST_PROCESSOR_NAME, post_processor_name);
 
         return json;
     }

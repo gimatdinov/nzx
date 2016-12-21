@@ -28,12 +28,16 @@ public class NZXApplication implements CommandLineRunner {
     public final static String OPTION_SERVER_NAME = "name";
     public final static String OPTION_CONFIG = "config";
 
+    private ConfigService cfgService;
     private NZX nzx;
 
     @PreDestroy
     private void fina() {
         if (nzx != null) {
             nzx.stop();
+        }
+        if (cfgService != null) {
+            cfgService.stop();
         }
     }
 
@@ -54,10 +58,12 @@ public class NZXApplication implements CommandLineRunner {
             }
             Tracer tracer = new LogbackTracer("NZX");
             tracer.info("Loading", "NZX version: " + NZXConstants.NZX_VERSION);
-            ConfigService cfgService = new ConfigService(configFile, tracer);
+            cfgService = new ConfigService(configFile, tracer);
+            cfgService.bootstrap();
             if (cmdLine.getOptionValue(OPTION_SERVER_NAME) != null) {
                 cfgService.nzx().setServerName(cmdLine.getOptionValue(OPTION_SERVER_NAME));
-            }     
+            }
+            cfgService.start();
             nzx = new NZX(cfgService, tracer);
             nzx.bootstrap();
             nzx.start();

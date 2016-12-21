@@ -1,4 +1,4 @@
-package ru.otr.nzx.http.secure;
+package ru.otr.nzx.http.server;
 
 import java.util.Map.Entry;
 
@@ -32,53 +32,47 @@ import io.netty.handler.codec.http.HttpRequest;
 
 public class MITM {
 
-    public MITM() {
-    }
-
     public FullHttpResponse sendRequest(HttpRequest request) throws Exception {
-        CloseableHttpClient httpclient = HttpClients.createDefault();
-        CloseableHttpResponse res = null;
         HttpRequestBase req = null;
-        try {
-            switch (request.getMethod().name()) {
-            case "OPTIONS":
-                req = new HttpOptions(request.getUri());
-                break;
-            case "HEAD":
-                req = new HttpHead(request.getUri());
-                break;
-            case "GET":
-                req = new HttpGet(request.getUri());
-                break;
-            case "POST":
-                HttpPost postMsg = new HttpPost(request.getUri());
-                FullHttpRequest postRequest = (FullHttpRequest) request;
-                byte[] content = new byte[postRequest.content().readableBytes()];
-                postRequest.content().readBytes(content);
-                postMsg.setEntity(new ByteArrayEntity(content));
-                req = postMsg;
-                break;
-            case "PUT":
-                req = new HttpPut(request.getUri());
-                break;
-            case "PATCH":
-                req = new HttpPatch(request.getUri());
-                break;
-            case "DELETE":
-                req = new HttpDelete(request.getUri());
-                break;
-            case "TRACE":
-                req = new HttpTrace(request.getUri());
-                break;
-            default:
-                throw new Exception("MethodNotAllowed");
+        switch (request.getMethod().name()) {
+        case "OPTIONS":
+            req = new HttpOptions(request.getUri());
+            break;
+        case "HEAD":
+            req = new HttpHead(request.getUri());
+            break;
+        case "GET":
+            req = new HttpGet(request.getUri());
+            break;
+        case "POST":
+            HttpPost postMsg = new HttpPost(request.getUri());
+            FullHttpRequest postRequest = (FullHttpRequest) request;
+            byte[] content = new byte[postRequest.content().readableBytes()];
+            postRequest.content().readBytes(content);
+            postMsg.setEntity(new ByteArrayEntity(content));
+            req = postMsg;
+            break;
+        case "PUT":
+            req = new HttpPut(request.getUri());
+            break;
+        case "PATCH":
+            req = new HttpPatch(request.getUri());
+            break;
+        case "DELETE":
+            req = new HttpDelete(request.getUri());
+            break;
+        case "TRACE":
+            req = new HttpTrace(request.getUri());
+            break;
+        default:
+            throw new Exception("MethodNotAllowed");
+        }
+        for (Entry<String, String> item : request.headers().entries()) {
+            if (!item.getKey().equals(Names.CONTENT_LENGTH)) {
+                req.setHeader(item.getKey(), item.getValue());
             }
-            for (Entry<String, String> item : request.headers().entries()) {
-                if (!item.getKey().equals(Names.CONTENT_LENGTH)) {
-                    req.setHeader(item.getKey(), item.getValue());
-                }
-            }
-            res = httpclient.execute(req);
+        }
+        try (CloseableHttpClient httpclient = HttpClients.createDefault(); CloseableHttpResponse res = httpclient.execute(req);) {
             FullHttpResponse response;
             if (res.getEntity() != null && res.getEntity().getContent() != null) {
                 ByteBuf buffer = Unpooled.buffer();
@@ -96,13 +90,7 @@ public class MITM {
             HttpHeaders.setHeader(response, Names.CONNECTION, Values.CLOSE);
             EntityUtils.consume(res.getEntity());
             return response;
-        } finally {
-            if (res != null) {
-                res.close();
-            }
-            httpclient.close();
         }
-
     }
 
 }

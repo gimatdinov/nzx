@@ -1,4 +1,4 @@
-package ru.otr.nzx.config.http.server;
+package ru.otr.nzx.config.model;
 
 import java.net.URISyntaxException;
 
@@ -6,13 +6,8 @@ import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import ru.otr.nzx.config.Config;
-import ru.otr.nzx.config.http.location.LocationConfig;
-import ru.otr.nzx.config.http.location.LocationConfigMap;
-import ru.otr.nzx.config.http.postprocessing.PostProcessorConfig;
-
-public class HTTPServerConfig extends Config {
-    private final static Logger log = LoggerFactory.getLogger(HTTPServerConfig.class);
+public class ServerConfig extends Config {
+    private final static Logger log = LoggerFactory.getLogger(ServerConfig.class);
 
     public final static String LISTEN = "listen";
 
@@ -22,7 +17,6 @@ public class HTTPServerConfig extends Config {
     public final static String MAX_RESPONSE_BUFFER_SIZE = "max_response_buffer_size";
 
     public final static String LOCATIONS = "locations";
-    public final static String POST_PROCESSING = "post_processing";
 
     public final boolean enable;
     public final String listenHost;
@@ -35,14 +29,13 @@ public class HTTPServerConfig extends Config {
     public final int max_response_buffer_size;
 
     public final LocationConfigMap locations;
-    public final PostProcessorConfig post_processing;
 
     public String getListen() {
         return listenHost + ":" + listenPort;
     }
 
-    public HTTPServerConfig(JSONObject src, HTTPServerConfigMap servers) throws URISyntaxException {
-        super(src.getString(NAME), servers);
+    public ServerConfig(JSONObject src, Config host) throws URISyntaxException {
+        super(src.getString(NAME), host);
         enable = src.optBoolean(ENABLE, true);
         String[] listen = src.getString(LISTEN).split(":");
         listenHost = listen[0];
@@ -55,12 +48,6 @@ public class HTTPServerConfig extends Config {
         max_response_buffer_size = src.optInt(MAX_RESPONSE_BUFFER_SIZE);
 
         locations = new LocationConfigMap(src.getJSONArray(LOCATIONS), LOCATIONS, this);
-
-        if (src.has(POST_PROCESSING)) {
-            post_processing = new PostProcessorConfig(src.getJSONObject(POST_PROCESSING), POST_PROCESSING, this);
-        } else {
-            post_processing = null;
-        }
     }
 
     @Override
@@ -85,9 +72,6 @@ public class HTTPServerConfig extends Config {
             server.put(MAX_RESPONSE_BUFFER_SIZE, max_response_buffer_size);
         }
         server.put(LOCATIONS, locations.toJSON());
-        if (post_processing != null) {
-            server.put(POST_PROCESSING, post_processing.toJSON());
-        }
         return server;
     }
 

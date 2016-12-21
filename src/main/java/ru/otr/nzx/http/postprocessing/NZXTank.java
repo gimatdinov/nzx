@@ -5,18 +5,17 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
-import cxc.jex.postprocessing.Tank;
 import io.netty.buffer.ByteBuf;
-import ru.otr.nzx.http.server.HTTPServer.ObjectType;
+import ru.otr.nzx.http.server.Server.ObjectType;
 
-public class HTTPMessageTank extends Tank {
+public class NZXTank extends cxc.jex.postprocessing.Tank {
     public ObjectType type;
     public Date requestDateTime;
     public String requestID;
     public URI requestURI;
     public int responseStatusCode;
     public boolean success;
-    
+
     public String locationName;
     public String httpMethod;
 

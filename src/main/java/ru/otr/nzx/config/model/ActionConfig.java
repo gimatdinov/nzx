@@ -1,13 +1,9 @@
-package ru.otr.nzx.config.http.postprocessing;
+package ru.otr.nzx.config.model;
 
 import java.net.URISyntaxException;
-import java.util.Map;
 
 import org.json.JSONException;
 import org.json.JSONObject;
-
-import ru.otr.nzx.config.Config;
-import ru.otr.nzx.config.SimpleConfig;
 
 public class ActionConfig extends Config {
     public final static String ENABLE = "enable";
@@ -19,10 +15,9 @@ public class ActionConfig extends Config {
     public final String action_class;
     public final String processor_name;
     public final SimpleConfig parameters;
-    public boolean parametersUpdatedMark = true;
 
-    public ActionConfig(JSONObject src, ActionConfigMap actions) throws URISyntaxException {
-        super(src.getString(NAME), actions);
+    public ActionConfig(JSONObject src, Config host) throws URISyntaxException {
+        super(src.getString(NAME), host);
         enable = src.optBoolean(ENABLE, true);
         action_class = src.optString(ACTION_CLASS, null);
         processor_name = src.optString(PROCESSOR_NAME, null);
@@ -41,28 +36,9 @@ public class ActionConfig extends Config {
         json.put(NAME, name);
         json.put(ENABLE, enable);
         json.put(ACTION_CLASS, action_class);
+        json.put(PROCESSOR_NAME, processor_name);
         json.put(PARAMETERS, parameters.toJSON());
         return json;
-    }
-
-    public void setParameters(Map<String, String> parameters) {
-        for (Map.Entry<String, String> item : parameters.entrySet()) {
-            if (item.getKey() == null) {
-                continue;
-            }
-            if (NAME.equals(item.getKey())) {
-                continue;
-            }
-            if (ENABLE.equals(item.getKey())) {
-                enable = Boolean.valueOf(item.getValue());
-                continue;
-            }
-            if (ACTION_CLASS.equals(item.getKey())) {
-                continue;
-            }
-            this.parameters.put(item.getKey(), item.getValue());
-        }
-        parametersUpdatedMark = true;
     }
 
 }

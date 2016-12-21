@@ -1,12 +1,9 @@
-package ru.otr.nzx.config.http.postprocessing;
+package ru.otr.nzx.config.model;
 
 import java.net.URISyntaxException;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
-
-import ru.otr.nzx.config.Config;
-import ru.otr.nzx.config.ConfigMap;
 
 public class ActionConfigMap extends ConfigMap<ActionConfig> {
 

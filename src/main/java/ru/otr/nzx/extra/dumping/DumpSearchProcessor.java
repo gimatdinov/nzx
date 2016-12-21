@@ -30,17 +30,17 @@ import cxc.jex.ftp.server.FTPServer;
 import cxc.jex.tracer.Tracer;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.http.HttpRequest;
-import ru.otr.nzx.config.http.location.LocationConfig;
-import ru.otr.nzx.config.http.postprocessing.ActionConfig;
-import ru.otr.nzx.config.http.processing.HTTPProcessorConfig;
-import ru.otr.nzx.http.location.Location;
-import ru.otr.nzx.http.postprocessing.HTTPMessageAction;
-import ru.otr.nzx.http.postprocessing.HTTPPostProcessor;
-import ru.otr.nzx.http.postprocessing.HTTPMessageTank;
-import ru.otr.nzx.http.processing.HTTPProcessor;
+import ru.otr.nzx.config.model.ActionConfig;
+import ru.otr.nzx.config.model.LocationConfig;
+import ru.otr.nzx.config.model.ProcessorConfig;
+import ru.otr.nzx.http.postprocessing.NZXAction;
+import ru.otr.nzx.http.postprocessing.NZXPostProcessor;
+import ru.otr.nzx.http.postprocessing.NZXTank;
+import ru.otr.nzx.http.processing.Processor;
+import ru.otr.nzx.http.server.Location;
 import ru.otr.nzx.util.NZXUtil;
 
-public class DumpSearchProcessor extends HTTPProcessor {
+public class DumpSearchProcessor extends Processor {
 
     private DumpSearchProcessorConfig config;
 
@@ -49,10 +49,10 @@ public class DumpSearchProcessor extends HTTPProcessor {
     private IndexWriter ixWriter;
     private FTPServer ftpServer;
 
-    public DumpSearchProcessor(HTTPProcessorConfig config, Tracer tracer) {
+    public DumpSearchProcessor(ProcessorConfig config, Tracer tracer) {
         super(config, tracer);
         this.config = new DumpSearchProcessorConfig(config);
-        ftpServer = new FTPServer(tracer.getSubtracer("ftp"));
+        ftpServer = new FTPServer(tracer.getSubtracer("FTP"));
     }
 
     @Override
@@ -141,7 +141,7 @@ public class DumpSearchProcessor extends HTTPProcessor {
         ixWriter.addDocument(doc);
     }
 
-    public void indexDump(HTTPMessageTank tank) throws IllegalAccessException, IOException {
+    public void indexDump(NZXTank tank) throws IllegalAccessException, IOException {
         try (ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
             tank.getBuffer().read(baos);
             indexDump(Dumping.makePath(tank), baos.toString());
@@ -165,16 +165,16 @@ public class DumpSearchProcessor extends HTTPProcessor {
 
     @Override
     public Location makeLocation(HttpRequest originalRequest, ChannelHandlerContext ctx, Date requestDateTime, String requestID, URI requestURI,
-            LocationConfig locationConfig, HTTPPostProcessor postProcessor, Tracer locationTracer) {
+            LocationConfig locationConfig, NZXPostProcessor postProcessor, Tracer locationTracer) {
         return new DumpSearchLocation(this, originalRequest, ctx, requestDateTime, requestID, requestURI, locationConfig, postProcessor, locationTracer);
     }
 
     @Override
-    public HTTPMessageAction makeAction(ActionConfig config) {
-        HTTPMessageAction action = new HTTPMessageAction() {
+    public NZXAction makeAction(ActionConfig config) {
+        return new NZXAction(config) {
             @Override
-            public void process(HTTPMessageTank tank, Tracer tracer) throws Exception {
-                if (getConfig().parametersUpdatedMark) {
+            public void process(NZXTank tank, Tracer tracer) throws Exception {
+                if (this.config.parameters.updatedMark) {
                     try {
                         applyParameters();
                     } catch (Exception e) {
@@ -191,7 +191,5 @@ public class DumpSearchProcessor extends HTTPProcessor {
             public synchronized void applyParameters() throws Exception {
             }
         };
-        action.setConfig(config);
-        return action;
     }
 }
