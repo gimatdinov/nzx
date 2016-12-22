@@ -35,10 +35,6 @@ public class NZXPostProcessor extends cxc.jex.postprocessing.PostProcessor<NZXTa
                 }
                 if (cfg.processor_name != null) {
                     Processor processor = processors.get(cfg.processor_name);
-                    if (processor == null) {
-                        throw new RuntimeException(
-                                "HTTPProcessor with name \"" + cfg.processor_name + "\" not found, need for postprocessing action [" + cfg.getName() + "]");
-                    }
                     actions.add(processor.makeAction(cfg));
                 }
             }

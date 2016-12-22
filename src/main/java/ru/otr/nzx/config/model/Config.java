@@ -12,6 +12,7 @@ public abstract class Config {
 
     public final static String ENABLE = "enable";
     public final static String NAME = "name";
+    public final static String REF = "ref:";
 
     protected final String name;
     protected final Config host;

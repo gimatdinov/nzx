@@ -8,9 +8,7 @@ import org.littleshoot.proxy.HttpProxyServerBootstrap;
 import org.littleshoot.proxy.impl.DefaultHttpProxyServer;
 
 import cxc.jex.tracer.Tracer;
-import ru.otr.nzx.config.model.LocationConfig;
 import ru.otr.nzx.config.model.ServerConfig;
-import ru.otr.nzx.config.model.LocationConfig.LocationType;
 import ru.otr.nzx.http.postprocessing.NZXPostProcessor;
 import ru.otr.nzx.http.processing.Processor;
 
@@ -35,18 +33,6 @@ public class Server {
 
     public void bootstrap() {
         tracer.info("Bootstrap", "");
-        for (LocationConfig item : config.locations.values()) {
-            if (item.enable) {
-                if (item.type == LocationType.PROCESSOR && processors.get(item.processor_name) == null) {
-                    throw new RuntimeException(
-                            "http.processors[name=\"" + item.processor_name + "\"] not found, need for locations[name=\"" + item.getName() + "\"]");
-                }
-                if (item.post_processor_name != null && postProcessors.get(item.post_processor_name) == null) {
-                    throw new RuntimeException(
-                            "http.post_processors[name=\"" + item.post_processor_name + "\"] not found, need for locations[name=\"" + item.getName() + "\"]");
-                }
-            }
-        }
         srvBootstrap = DefaultHttpProxyServer.bootstrap().withName(config.getName()).withAddress(new InetSocketAddress(config.listenHost, config.listenPort));
         if (config.connect_timeout > 0) {
             srvBootstrap.withConnectTimeout(config.connect_timeout);

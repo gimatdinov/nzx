@@ -24,6 +24,7 @@ public class PostProcessorConfig extends Config {
         buffer_size_min = src.getInt(BUFFER_SIZE_MIN);
         workers = src.optInt(WORKERS, 1);
         actions = new ActionConfigMap(src.optJSONArray(ACTIONS), ACTIONS, this);
+        context.put(REF + getName(), this);
     }
 
     @Override

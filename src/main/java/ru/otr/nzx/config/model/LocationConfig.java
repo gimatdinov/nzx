@@ -77,6 +77,16 @@ public class LocationConfig extends Config {
             }
             type = LocationType.PROCESSOR;
             processor_name = src.getString(PROCESSOR_NAME);
+            Config processorConfig = context.get(REF + processor_name);
+            if (processorConfig == null) {
+                throw new RuntimeException("Processor with " + REF + processor_name + " not found, need for locations[name=\"" + getName() + "\"]");
+            }
+            if (!(processorConfig instanceof ProcessorConfig)) {
+                throw new RuntimeException(REF + processor_name + "\"] is not reference to Processor, need for locations[name=\"" + getName() + "\"]");
+            }
+            if (!((ProcessorConfig) processorConfig).enable) {
+                throw new RuntimeException("Processor with " + REF + processor_name + " not enable, need for locations[name=\"" + getName() + "\"]");
+            }
         } else {
             processor_name = null;
         }
@@ -86,6 +96,18 @@ public class LocationConfig extends Config {
         }
 
         post_processor_name = src.optString(POST_PROCESSOR_NAME, null);
+        if (post_processor_name != null) {
+            Config postProcessorConfig = context.get(REF + post_processor_name);
+            if (postProcessorConfig == null) {
+                throw new RuntimeException("PostProcessor with " + REF + post_processor_name + " not found, need for locations[name=\"" + getName() + "\"]");
+            }
+            if (!(postProcessorConfig instanceof PostProcessorConfig)) {
+                throw new RuntimeException(REF + post_processor_name + "\"] is not reference to PostProcessor, need for locations[name=\"" + getName() + "\"]");
+            }
+            if (!((PostProcessorConfig) postProcessorConfig).enable) {
+                throw new RuntimeException("PostProcessor with " + REF + post_processor_name + " not enable, need for locations[name=\"" + getName() + "\"]");
+            }
+        }
     }
 
     @Override

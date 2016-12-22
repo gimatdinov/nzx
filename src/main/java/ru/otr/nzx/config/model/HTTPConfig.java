@@ -15,7 +15,6 @@ public class HTTPConfig extends Config {
 
     public HTTPConfig(JSONObject src, String name, Config host) throws URISyntaxException {
         super(name, host);
-        servers = new ServerConfigMap(src.getJSONArray(SERVERS), SERVERS, this);
         if (src.has(PROCESSORS)) {
             processors = new ProcessorConfigMap(src.getJSONArray(PROCESSORS), PROCESSORS, this);
         } else {
@@ -26,18 +25,19 @@ public class HTTPConfig extends Config {
         } else {
             post_processors = null;
         }
+        servers = new ServerConfigMap(src.getJSONArray(SERVERS), SERVERS, this);
     }
 
     @Override
     public JSONObject toJSON() {
         JSONObject http = new JSONObject();
-        http.put(SERVERS, servers.toJSON());
         if (processors != null) {
             http.put(PROCESSORS, processors.toJSON());
         }
         if (post_processors != null) {
             http.put(POST_PROCESSORS, post_processors.toJSON());
         }
+        http.put(SERVERS, servers.toJSON());
         return http;
     }
 }

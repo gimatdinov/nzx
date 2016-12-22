@@ -27,6 +27,25 @@ public class ActionConfig extends Config {
         if (action_class != null && processor_name != null) {
             throw new JSONException("Incompatible {" + ACTION_CLASS + ", " + PROCESSOR_NAME + "}");
         }
+        if (action_class != null) {
+            try {
+                Class.forName(action_class);
+            } catch (ClassNotFoundException e) {
+                throw new RuntimeException(e);
+            }
+        }
+        if (processor_name != null) {
+            Config processorConfig = context.get(REF + processor_name);
+            if (processorConfig == null) {
+                throw new RuntimeException("Processor with " + REF + processor_name + " not found, need for actions[name=\"" + getName() + "\"]");
+            }
+            if (!(processorConfig instanceof ProcessorConfig)) {
+                throw new RuntimeException(REF + processor_name + "\"] is not reference to Processor, need for actions[name=\"" + getName() + "\"]");
+            }
+            if (!((ProcessorConfig) processorConfig).enable) {
+                throw new RuntimeException("Processor with " + REF + processor_name + " not enable, need for actions[name=\"" + getName() + "\"]");
+            }
+        }
         parameters = new SimpleConfig(src.optJSONObject(PARAMETERS), PARAMETERS, this);
     }
 
