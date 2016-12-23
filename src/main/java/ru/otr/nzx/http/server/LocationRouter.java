@@ -50,8 +50,8 @@ public class LocationRouter extends HttpFiltersSourceAdapter {
             URI requestURI = new URI(request.getUri()).normalize();
             if (!HttpMethod.CONNECT.equals(request.getMethod())) {
                 LocationConfig locCfg = config.locate(requestURI.getPath());
-                NZXPostProcessor postProcessor = postProcessors.get(locCfg.post_processor_name);
                 if (locCfg != null && locCfg.enable) {
+                    NZXPostProcessor postProcessor = postProcessors.get(locCfg.post_processor_name);
                     switch (locCfg.type) {
                     case PROXY_PASS:
                         return new ProxyPassLocation(request, ctx, requestDateTime, requestID, requestURI, locCfg, postProcessor,
@@ -66,7 +66,7 @@ public class LocationRouter extends HttpFiltersSourceAdapter {
                         return new Location(request, ctx, requestDateTime, requestID, requestURI, locCfg, postProcessor, tracer.getSubtracer(locCfg.getName()));
                     }
                 } else {
-                    return new FailureLocation(request, ctx, requestDateTime, requestID, requestURI, null, postProcessor, tracer.getSubtracer("#NotFound"),
+                    return new FailureLocation(request, ctx, requestDateTime, requestID, requestURI, null, null, tracer.getSubtracer("#NotFound"),
                             404);
                 }
             } else {

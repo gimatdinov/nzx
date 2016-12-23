@@ -74,7 +74,7 @@ public class DumpSearchProcessor extends Processor {
             if (needIndexing) {
                 indexDumps();
             }
-            ftpServer.bootstrap(config.ftp_host, config.ftp_port, false, null, config.dumps_store.toString(), true);
+            ftpServer.bootstrap(config.ftp_host, config.ftp_port, false, null, config.ftp_directory, true);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -157,7 +157,7 @@ public class DumpSearchProcessor extends Processor {
         Query query = qBuilder.createPhraseQuery(DumpSearchProcessorConfig.CONST_CONTENT, queryText);
         ScoreDoc[] hits = ixSearcher.search(query, 1000).scoreDocs;
         for (ScoreDoc item : hits) {
-            result.add(config.dumps_ftp_uri + "/" + ixSearcher.doc(item.doc).get(DumpSearchProcessorConfig.CONST_PATH));
+            result.add(config.dumps_uri + "/" + ixSearcher.doc(item.doc).get(DumpSearchProcessorConfig.CONST_PATH));
         }
         dReader.close();
         return result;
