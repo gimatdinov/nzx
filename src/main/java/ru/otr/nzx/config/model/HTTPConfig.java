@@ -1,8 +1,8 @@
 package ru.otr.nzx.config.model;
 
-import java.net.URISyntaxException;
-
 import org.json.JSONObject;
+
+import ru.otr.nzx.config.service.ConfigException;
 
 public class HTTPConfig extends Config {
     public final static String SERVERS = "servers";
@@ -13,7 +13,7 @@ public class HTTPConfig extends Config {
     public final ProcessorConfigMap processors;
     public final PostProcessorConfigMap post_processors;
 
-    public HTTPConfig(JSONObject src, String name, Config host) throws URISyntaxException {
+    public HTTPConfig(JSONObject src, String name, Config host) throws ConfigException {
         super(name, host);
         if (src.has(PROCESSORS)) {
             processors = new ProcessorConfigMap(src.getJSONArray(PROCESSORS), PROCESSORS, this);

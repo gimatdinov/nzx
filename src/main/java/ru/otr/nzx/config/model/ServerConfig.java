@@ -1,10 +1,10 @@
 package ru.otr.nzx.config.model;
 
-import java.net.URISyntaxException;
-
 import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import ru.otr.nzx.config.service.ConfigException;
 
 public class ServerConfig extends Config {
     private final static Logger log = LoggerFactory.getLogger(ServerConfig.class);
@@ -34,7 +34,7 @@ public class ServerConfig extends Config {
         return listenHost + ":" + listenPort;
     }
 
-    public ServerConfig(JSONObject src, Config host) throws URISyntaxException {
+    public ServerConfig(JSONObject src, Config host) throws ConfigException {
         super(src.getString(NAME), host);
         enable = src.optBoolean(ENABLE, true);
         String[] listen = src.getString(LISTEN).split(":");

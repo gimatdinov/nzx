@@ -1,11 +1,12 @@
 package ru.otr.nzx.config.model;
 
-import java.net.URISyntaxException;
 import java.util.HashMap;
 import java.util.Map;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
+
+import ru.otr.nzx.config.service.ConfigException;
 
 public abstract class Config {
     public final static String NAME_FORMAT = "[a-zA-Z_][a-zA-Z0-9_.-]*";
@@ -18,10 +19,10 @@ public abstract class Config {
     protected final Config host;
     protected final Map<String, Config> context;
 
-    public Config(String name, Config host) throws URISyntaxException {
+    public Config(String name, Config host) throws ConfigException {
         if (host != null) {
             if (name == null || !name.matches(NAME_FORMAT)) {
-                throw new URISyntaxException("\"" + name + "\"", "Invalid name!");
+                throw new ConfigException("Invalid name: \"" + name + "\"");
             }
             this.name = name;
             this.host = host;
@@ -34,14 +35,14 @@ public abstract class Config {
         bindPathName();
     }
 
-    public void bindPathName() throws URISyntaxException {
+    public void bindPathName() throws ConfigException {
         if (context.containsKey(getPathName())) {
-            throw new URISyntaxException(getPathName(), "PathName already bound!");
+            throw new ConfigException("PathName " + getPathName() + " already bound!");
         }
         context.put(getPathName(), this);
         if (host != null) {
             if (context.containsKey(getPathName() + "/")) {
-                throw new URISyntaxException(getPathName() + "/", "PathName already bound!");
+                throw new ConfigException("PathName " + getPathName() + "/ already bound!");
             }
             context.put(getPathName() + "/", this);
         }
@@ -52,6 +53,17 @@ public abstract class Config {
         if (host != null) {
             context.remove(getPathName() + "/");
         }
+    }
+
+    public void bindRefName() throws ConfigException {
+        if (context.containsKey(REF + getName())) {
+            throw new ConfigException("Referece" + REF + getName() + " already bound!");
+        }
+        context.put(REF + getName(), this);
+    }
+    
+    public void unbindRefName() {
+        context.remove(REF + getName());
     }
 
     @Override

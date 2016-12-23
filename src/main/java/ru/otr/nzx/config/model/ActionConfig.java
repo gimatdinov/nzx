@@ -1,9 +1,8 @@
 package ru.otr.nzx.config.model;
 
-import java.net.URISyntaxException;
-
-import org.json.JSONException;
 import org.json.JSONObject;
+
+import ru.otr.nzx.config.service.ConfigException;
 
 public class ActionConfig extends Config {
     public final static String ENABLE = "enable";
@@ -16,34 +15,34 @@ public class ActionConfig extends Config {
     public final String processor_name;
     public final SimpleConfig parameters;
 
-    public ActionConfig(JSONObject src, Config host) throws URISyntaxException {
+    public ActionConfig(JSONObject src, Config host) throws ConfigException {
         super(src.getString(NAME), host);
         enable = src.optBoolean(ENABLE, true);
         action_class = src.optString(ACTION_CLASS, null);
         processor_name = src.optString(PROCESSOR_NAME, null);
         if (action_class == null && processor_name == null) {
-            throw new JSONException(ACTION_CLASS + " or " + PROCESSOR_NAME + " required!");
+            throw new ConfigException(ACTION_CLASS + " or " + PROCESSOR_NAME + " required!");
         }
         if (action_class != null && processor_name != null) {
-            throw new JSONException("Incompatible {" + ACTION_CLASS + ", " + PROCESSOR_NAME + "}");
+            throw new ConfigException("Incompatible {" + ACTION_CLASS + ", " + PROCESSOR_NAME + "}");
         }
         if (action_class != null) {
             try {
                 Class.forName(action_class);
             } catch (ClassNotFoundException e) {
-                throw new RuntimeException(e);
+                throw new ConfigException(e);
             }
         }
         if (processor_name != null) {
             Config processorConfig = context.get(REF + processor_name);
             if (processorConfig == null) {
-                throw new RuntimeException("Processor with " + REF + processor_name + " not found, need for actions[name=\"" + getName() + "\"]");
+                throw new ConfigException("Processor with " + REF + processor_name + " not found, need for actions[name=\"" + getName() + "\"]");
             }
             if (!(processorConfig instanceof ProcessorConfig)) {
-                throw new RuntimeException(REF + processor_name + "\"] is not reference to Processor, need for actions[name=\"" + getName() + "\"]");
+                throw new ConfigException(REF + processor_name + "\"] is not reference to Processor, need for actions[name=\"" + getName() + "\"]");
             }
             if (!((ProcessorConfig) processorConfig).enable) {
-                throw new RuntimeException("Processor with " + REF + processor_name + " not enable, need for actions[name=\"" + getName() + "\"]");
+                throw new ConfigException("Processor with " + REF + processor_name + " not enable, need for actions[name=\"" + getName() + "\"]");
             }
         }
         parameters = new SimpleConfig(src.optJSONObject(PARAMETERS), PARAMETERS, this);

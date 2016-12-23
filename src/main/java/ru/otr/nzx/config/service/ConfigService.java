@@ -10,7 +10,6 @@ import java.nio.file.Files;
 import java.util.Date;
 import java.util.Map;
 
-import org.json.JSONException;
 import org.json.JSONObject;
 import org.littleshoot.proxy.HttpFilters;
 import org.littleshoot.proxy.HttpFiltersSourceAdapter;
@@ -46,7 +45,7 @@ public class ConfigService {
     private HttpProxyServerBootstrap srvBootstrap;
     private HttpProxyServer srv;
 
-    public ConfigService(File nzxConfigFile, Tracer tracer) throws URISyntaxException, ClassNotFoundException, JSONException, IOException {
+    public ConfigService(File nzxConfigFile, Tracer tracer) throws IOException, ConfigException {
         this.tracer = tracer.getSubtracer(SERVICE_NAME);
         if (nzxConfigFile.exists()) {
             this.tracer.info("NZX.Config.File", nzxConfigFile.getPath());
@@ -122,13 +121,17 @@ public class ConfigService {
         }
     }
 
-    public LocationConfig updateLocation(LocationConfig node, Map<String, String> parameters) throws URISyntaxException {
+    public LocationConfig updateLocation(LocationConfig node, Map<String, String> parameters) throws ConfigException {
         synchronized (node) {
             if (parameters.containsKey(LocationConfig.ENABLE)) {
                 node.enable = Boolean.valueOf(parameters.get(LocationConfig.ENABLE));
             }
             if (parameters.containsKey(LocationConfig.PROXY_PASS)) {
-                node.proxy_pass = new URI(parameters.get(LocationConfig.PROXY_PASS));
+                try {
+                    node.proxy_pass = new URI(parameters.get(LocationConfig.PROXY_PASS));
+                } catch (URISyntaxException e) {
+                    throw new ConfigException(e);
+                }
                 node.type = LocationType.PROXY_PASS;
             }
             tracer.info("Location.Config.Update", node.getPathName() + "=" + node.toString());
@@ -136,29 +139,33 @@ public class ConfigService {
         }
     }
 
-    public LocationConfigMap createLocation(LocationConfigMap node, Map<String, String> parameters) throws URISyntaxException {
+    public LocationConfigMap createLocation(LocationConfigMap node, Map<String, String> parameters) throws ConfigException {
         synchronized (node) {
             String name = parameters.get(LocationConfig.NAME);
             if (name == null || name.length() == 0) {
-                throw new IllegalArgumentException("name cannot be empty!");
+                throw new ConfigException("name cannot be empty!");
             }
             String path = parameters.get(LocationConfig.PATH);
             if (path == null || path.length() == 0) {
-                throw new IllegalArgumentException("path cannot be empty!");
+                throw new ConfigException("path cannot be empty!");
             }
-            new URI(path);
+            try {
+                new URI(path);
+            } catch (URISyntaxException e) {
+                throw new ConfigException(e);
+            }
             LocationConfig loc = new LocationConfig(name, path, node);
             tracer.info("Location.Config.Create", loc.getPathName() + "=" + loc.toString());
             return node;
         }
     }
 
-    public void deleteLocation(LocationConfig node) {
+    public void deleteLocation(LocationConfig node) throws ConfigException {
         node.delete();
         tracer.info("Location.Config.Delete", node.getPathName() + "=" + node.toString());
     }
 
-    public ActionConfig updateAction(ActionConfig node, Map<String, String> parameters) throws URISyntaxException {
+    public ActionConfig updateAction(ActionConfig node, Map<String, String> parameters) throws ConfigException {
         synchronized (node) {
             if (parameters.containsKey(LocationConfig.ENABLE)) {
                 node.enable = Boolean.valueOf(parameters.get(ActionConfig.ENABLE));
@@ -168,13 +175,13 @@ public class ConfigService {
         }
     }
 
-    public SimpleConfig update(SimpleConfig node, Map<String, String> parameters) {
+    public SimpleConfig update(SimpleConfig node, Map<String, String> parameters) throws ConfigException {
         node.putAll(parameters);
         tracer.info(node.getName() + ".Config.Update", node.getPathName() + "=" + node.toString());
         return node;
     }
 
-    public SimpleConfig delete(SimpleConfig node) {
+    public SimpleConfig delete(SimpleConfig node) throws ConfigException {
         node.clear();
         tracer.info(node.getName() + ".Config.Delete", node.getPathName() + "=" + node.toString());
         return node;

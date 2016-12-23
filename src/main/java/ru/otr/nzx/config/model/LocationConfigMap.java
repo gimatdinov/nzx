@@ -1,6 +1,5 @@
 package ru.otr.nzx.config.model;
 
-import java.net.URISyntaxException;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
@@ -8,12 +7,14 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import org.json.JSONArray;
 
+import ru.otr.nzx.config.service.ConfigException;
+
 public class LocationConfigMap extends Config implements Map<String, LocationConfig> {
     private Map<String, LocationConfig> map = new ConcurrentHashMap<>();
 
     private int counter = 0;
 
-    public LocationConfigMap(JSONArray src, String name, Config host) throws URISyntaxException {
+    public LocationConfigMap(JSONArray src, String name, Config host) throws ConfigException {
         super(name, host);
         if (src != null) {
             for (int i = 0; i < src.length(); i++) {

@@ -3,7 +3,10 @@ package ru.otr.nzx.config.model;
 import java.net.URI;
 import java.net.URISyntaxException;
 
+import org.json.JSONException;
 import org.json.JSONObject;
+
+import ru.otr.nzx.config.service.ConfigException;
 
 public class LocationConfig extends Config {
     public static enum LocationType {
@@ -37,9 +40,13 @@ public class LocationConfig extends Config {
 
     public final String post_processor_name;
 
-    public LocationConfig(String name, String path, LocationConfigMap locations) throws URISyntaxException {
+    public LocationConfig(String name, String path, LocationConfigMap locations) throws ConfigException {
         super(name, locations);
-        this.path = new URI(path).normalize().getPath();
+        try {
+            this.path = new URI(path).normalize().getPath();
+        } catch (URISyntaxException e) {
+            throw new ConfigException(e);
+        }
         locations.put(path, this);
         proxy_set_headers = new SimpleConfig(PROXY_SET_HEADERS, this);
         file = null;
@@ -48,20 +55,25 @@ public class LocationConfig extends Config {
         post_processor_name = null;
     }
 
-    LocationConfig(JSONObject src, LocationConfigMap locations) throws URISyntaxException {
+    LocationConfig(JSONObject src, LocationConfigMap locations) throws ConfigException {
         super(src.getString(NAME), locations);
-        path = new URI(src.getString(PATH)).normalize().getPath();
-        enable = src.optBoolean(ENABLE, true);
+        try {
+            path = new URI(src.getString(PATH)).normalize().getPath();
+            enable = src.optBoolean(ENABLE, true);
 
-        if (src.has(PROXY_PASS)) {
-            type = LocationType.PROXY_PASS;
-            proxy_pass = new URI(src.getString(PROXY_PASS));
+            if (src.has(PROXY_PASS)) {
+                type = LocationType.PROXY_PASS;
+                proxy_pass = new URI(src.getString(PROXY_PASS));
+            }
+            proxy_set_headers = new SimpleConfig(src.optJSONObject(PROXY_SET_HEADERS), PROXY_SET_HEADERS, this);
+        } catch (JSONException e) {
+            throw new ConfigException(e);
+        } catch (URISyntaxException e) {
+            throw new ConfigException(e);
         }
-        proxy_set_headers = new SimpleConfig(src.optJSONObject(PROXY_SET_HEADERS), PROXY_SET_HEADERS, this);
-
         if (src.has(FILE)) {
             if (type != null) {
-                throw new IllegalArgumentException("Incompatible {" + PROXY_PASS + ", " + FILE + "}");
+                throw new ConfigException("Incompatible {" + PROXY_PASS + ", " + FILE + "}");
             }
             type = LocationType.FILE;
             file = src.optString(FILE);
@@ -73,19 +85,19 @@ public class LocationConfig extends Config {
 
         if (src.has(PROCESSOR_NAME)) {
             if (type != null) {
-                throw new IllegalArgumentException("Incompatible {" + PROXY_PASS + ", " + FILE + ", " + PROCESSOR_NAME + "}");
+                throw new ConfigException("Incompatible {" + PROXY_PASS + ", " + FILE + ", " + PROCESSOR_NAME + "}");
             }
             type = LocationType.PROCESSOR;
             processor_name = src.getString(PROCESSOR_NAME);
             Config processorConfig = context.get(REF + processor_name);
             if (processorConfig == null) {
-                throw new RuntimeException("Processor with " + REF + processor_name + " not found, need for locations[name=\"" + getName() + "\"]");
+                throw new ConfigException("Processor with " + REF + processor_name + " not found, need for locations[name=\"" + getName() + "\"]");
             }
             if (!(processorConfig instanceof ProcessorConfig)) {
-                throw new RuntimeException(REF + processor_name + "\"] is not reference to Processor, need for locations[name=\"" + getName() + "\"]");
+                throw new ConfigException(REF + processor_name + "\"] is not reference to Processor, need for locations[name=\"" + getName() + "\"]");
             }
             if (!((ProcessorConfig) processorConfig).enable) {
-                throw new RuntimeException("Processor with " + REF + processor_name + " not enable, need for locations[name=\"" + getName() + "\"]");
+                throw new ConfigException("Processor with " + REF + processor_name + " not enable, need for locations[name=\"" + getName() + "\"]");
             }
         } else {
             processor_name = null;
@@ -99,13 +111,13 @@ public class LocationConfig extends Config {
         if (post_processor_name != null) {
             Config postProcessorConfig = context.get(REF + post_processor_name);
             if (postProcessorConfig == null) {
-                throw new RuntimeException("PostProcessor with " + REF + post_processor_name + " not found, need for locations[name=\"" + getName() + "\"]");
+                throw new ConfigException("PostProcessor with " + REF + post_processor_name + " not found, need for locations[name=\"" + getName() + "\"]");
             }
             if (!(postProcessorConfig instanceof PostProcessorConfig)) {
-                throw new RuntimeException(REF + post_processor_name + "\"] is not reference to PostProcessor, need for locations[name=\"" + getName() + "\"]");
+                throw new ConfigException(REF + post_processor_name + "\"] is not reference to PostProcessor, need for locations[name=\"" + getName() + "\"]");
             }
             if (!((PostProcessorConfig) postProcessorConfig).enable) {
-                throw new RuntimeException("PostProcessor with " + REF + post_processor_name + " not enable, need for locations[name=\"" + getName() + "\"]");
+                throw new ConfigException("PostProcessor with " + REF + post_processor_name + " not enable, need for locations[name=\"" + getName() + "\"]");
             }
         }
     }

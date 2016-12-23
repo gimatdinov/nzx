@@ -1,10 +1,11 @@
 package ru.otr.nzx.config.model;
 
 import java.net.InetAddress;
-import java.net.URISyntaxException;
 import java.net.UnknownHostException;
 
 import org.json.JSONObject;
+
+import ru.otr.nzx.config.service.ConfigException;
 
 public class NZXConfig extends Config {
     public final static String SERVER_NAME = "server_name";
@@ -20,9 +21,13 @@ public class NZXConfig extends Config {
     public final int config_service_port;
     public final HTTPConfig http;
 
-    public NZXConfig(JSONObject src) throws URISyntaxException, UnknownHostException {
+    public NZXConfig(JSONObject src) throws ConfigException {
         super(null, null);
-        server_name = src.optString(SERVER_NAME, InetAddress.getLocalHost().getHostName());
+        try {
+            server_name = src.optString(SERVER_NAME, InetAddress.getLocalHost().getHostName());
+        } catch (UnknownHostException e) {
+            throw new ConfigException(e);
+        }
         log_config = src.optString(LOG_CONFIG, null);
         log = src.optString(LOG, "log");
         config_service_port = src.optInt(CONFIG_SERVICE_PORT, 0);
