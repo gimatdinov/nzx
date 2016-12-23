@@ -9,11 +9,11 @@ import ru.otr.nzx.config.model.ProcessorConfig;
 public class DumpSearchProcessorConfig {
     public static final String DUMPS_STORE = "dumps_store";
     public static final String SKIP_IN_DUMPS_STORE = "skip_in_dumps_store";
+    public static final String DUMPS_FTP_URI = "dumps_ftp_uri";
 
     public static final String FTP_HOST = "ftp_host";
     public static final String FTP_PORT = "ftp_port";
     public static final String FTP_DIRECTORY = "ftp_directory";
-    public static final String FTP_URI = "ftp_uri";
 
     static final String CONST_CONTENT = "content";
     static final String CONST_PATH = "path";
@@ -22,11 +22,11 @@ public class DumpSearchProcessorConfig {
     public final File dumps_store;
     public final Set<String> skip_in_dumps_store = new HashSet<>();
     public final File search_index;
+    public final String dumps_ftp_uri;
 
     public final String ftp_host;
     public final int ftp_port;
     public final String ftp_directory;
-    public final String ftp_uri;
 
     public DumpSearchProcessorConfig(ProcessorConfig src) {
         dumps_store = new File(src.processor_parameters.get(DUMPS_STORE));
@@ -42,7 +42,7 @@ public class DumpSearchProcessorConfig {
         ftp_host = src.processor_parameters.get(FTP_HOST);
         ftp_port = Integer.valueOf(src.processor_parameters.get(FTP_PORT));
         ftp_directory = src.processor_parameters.get(FTP_DIRECTORY);
-        ftp_uri = src.processor_parameters.get(FTP_URI);
+        dumps_ftp_uri = src.processor_parameters.get(DUMPS_FTP_URI);
     }
 
 }
