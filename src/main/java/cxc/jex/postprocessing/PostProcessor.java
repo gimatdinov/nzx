@@ -24,7 +24,7 @@ public abstract class PostProcessor<T extends Tank> {
     private List<Worker<T>> workers = new ArrayList<>();
     private Random random = new Random();
 
-    public PostProcessor(int workers, List<Action<T>> actions, ThreadFactory threadFactory, Tracer tracer) {
+    public PostProcessor(List<Action<T>> actions, int workers, ThreadFactory threadFactory, Tracer tracer) {
         this.tracer = tracer;
         if (actions != null) {
             this.actions.addAll(actions);

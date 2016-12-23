@@ -15,7 +15,7 @@ public class NZXPostProcessor extends cxc.jex.postprocessing.PostProcessor<NZXTa
     private final Map<String, Processor> processors;
 
     public NZXPostProcessor(PostProcessorConfig config, Map<String, Processor> processors, Tracer tracer) {
-        super(config.workers, null, new ThreadFactoryBuilder().setNameFormat("PP-W-%d").build(), tracer);
+        super(null, config.workers, new ThreadFactoryBuilder().setNameFormat("PP-W-%d").build(), tracer);
         this.config = config;
         this.processors = processors;
     }
