@@ -26,10 +26,11 @@ public class ByteBufferPool {
     public ByteBufferPool(int size, int bufferSizeMin) {
         this.bufferSizeMin = bufferSizeMin;
         int lg = (int) Math.round((Math.log(Math.ceil(((double) size) / bufferSizeMin)) / Math.log(2.0)));
-        int _size = ((int) Math.pow(2, lg)) * bufferSizeMin;
-        log.info("init " + (lg + 1) + " levels, space = " + _size);
-        space = new byte[_size];
         layout = new Cell[lg + 1][];
+        int _size = ((int) Math.pow(2, lg)) * bufferSizeMin;
+        space = new byte[_size];
+        log.debug("init " + layout.length + " levels, space = " + space.length);
+
         for (int i = 0; i < layout.length; i++) {
             layout[i] = new Cell[(int) Math.pow(2, layout.length - i - 1)];
             for (int j = 0; j < layout[i].length; j++) {
@@ -118,6 +119,14 @@ public class ByteBufferPool {
         } finally {
             lock.unlock();
         }
+    }
+
+    public int getLevels() {
+        return layout.length;
+    }
+
+    public int getSpaceSize() {
+        return space.length;
     }
 
     public int getFreeSpace() {

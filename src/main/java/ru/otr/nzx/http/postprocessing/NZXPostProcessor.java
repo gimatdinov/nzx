@@ -15,14 +15,13 @@ public class NZXPostProcessor extends cxc.jex.postprocessing.PostProcessor<NZXTa
     private final Map<String, Processor> processors;
 
     public NZXPostProcessor(PostProcessorConfig config, Map<String, Processor> processors, Tracer tracer) {
-        super(tracer);
+        super(config.workers, null, new ThreadFactoryBuilder().setNameFormat("PP-W-%d").build(), tracer);
         this.config = config;
         this.processors = processors;
     }
 
     public void bootstrap() {
-        tracer.info("Bootstrap", "");
-        super.init(config.workers, config.buffer_pool_size, config.buffer_size_min, null, new ThreadFactoryBuilder().setNameFormat("PP-W-%d").build());
+        super.bootstrap(config.buffer_pool_size, config.buffer_size_min);
         try {
             for (ActionConfig cfg : config.actions.values()) {
                 if (cfg.action_class != null) {

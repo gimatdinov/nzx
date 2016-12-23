@@ -24,21 +24,21 @@ public abstract class PostProcessor<T extends Tank> {
     private List<Worker<T>> workers = new ArrayList<>();
     private Random random = new Random();
 
-    public PostProcessor(Tracer tracer) {
+    public PostProcessor(int workers, List<Action<T>> actions, ThreadFactory threadFactory, Tracer tracer) {
         this.tracer = tracer;
-    }
-
-    public void init(int workers, int bufferPoolSize, int bufferSizeMin, List<Action<T>> actions, ThreadFactory threadFactory) {
-        bufferPool = new ByteBufferPool(bufferPoolSize, bufferSizeMin);
-        executor = Executors.newFixedThreadPool(workers, threadFactory);
+        if (actions != null) {
+            this.actions.addAll(actions);
+        }
         for (int i = 0; i < workers; i++) {
             this.workers.add(new Worker<T>(this));
         }
-        if (actions != null) {
-            for (Action<T> item : actions) {
-                this.actions.add(item);
-            }
-        }
+        this.executor = Executors.newFixedThreadPool(workers, threadFactory);
+    }
+
+    public void bootstrap(int bufferPoolSize, int bufferSizeMin) {
+        tracer.info("Bootstrap", "");
+        this.bufferPool = new ByteBufferPool(bufferPoolSize, bufferSizeMin);
+        this.tracer.info("BufferPool.Created", this.bufferPool.getSpaceSize() + " bytes, " + this.bufferPool.getLevels() + " levels");
     }
 
     public void start() {
