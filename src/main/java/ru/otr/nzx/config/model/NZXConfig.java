@@ -36,7 +36,7 @@ public class NZXConfig extends Config {
 	public Object toJSON() {
 		JSONObject json = new JSONObject();
 		if (server_name != null) {
-			json.put(SERVER_NAME, name);
+			json.put(SERVER_NAME, server_name);
 		}
 		if (log_config != null) {
 			json.put(LOG_CONFIG, log_config);
