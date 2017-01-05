@@ -13,9 +13,11 @@ import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.context.ConfigurableApplicationContext;
 
 import cxc.jex.tracer.Tracer;
 import cxc.jex.tracer.logback.LogbackTracer;
@@ -28,6 +30,8 @@ public class NZXApplication implements CommandLineRunner {
     public final static String OPTION_SERVER_NAME = "name";
     public final static String OPTION_CONFIG = "config";
 
+    @Autowired
+    private ConfigurableApplicationContext applicationContext;
     private ConfigService cfgService;
     private NZX nzx;
 
@@ -70,7 +74,8 @@ public class NZXApplication implements CommandLineRunner {
         } catch (ParseException e) {
             formatter.printHelp("java -jar nzx.jar", options);
         } catch (Exception e) {
-            log.error("Application has stopped!", e);
+            log.error("Application stopping...", e);
+            applicationContext.close();
         }
     }
 

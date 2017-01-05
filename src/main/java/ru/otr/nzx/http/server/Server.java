@@ -57,7 +57,9 @@ public class Server {
     }
 
     public void stop() {
-        srv.stop();
+        if (srv != null) {
+            srv.stop();
+        }
         tracer.info("Stopped", "");
     }
 
