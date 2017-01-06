@@ -1,5 +1,8 @@
 package ru.otr.nzx.util;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.net.URI;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -110,4 +113,14 @@ public class NZXUtil {
         return uri.getHost() + ((uri.getPort() < 0) ? "" : ":" + uri.getPort());
     }
 
+    public static long copy(InputStream src, OutputStream dst) throws IOException {
+        long total = 0;
+        byte[] buf = new byte[4096];
+        int n;
+        while ((n = src.read(buf)) > 0) {
+            dst.write(buf, 0, n);
+            total += n;
+        }
+        return total;
+    }
 }

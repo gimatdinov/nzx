@@ -47,32 +47,40 @@ public class NZXApplication implements CommandLineRunner {
 
     @Override
     public void run(String... args) {
+        Tracer tracer = new LogbackTracer("NZX");
+        File configFile = new File(ConfigService.DEFAULT_CONFIG_PATHNAME).getAbsoluteFile();
+        String serverName = null;
         Options options = new Options();
         Option nameOption = Option.builder("n").longOpt(OPTION_SERVER_NAME).required(false).numberOfArgs(1).desc("Server name").build();
         Option configOption = Option.builder("c").longOpt(OPTION_CONFIG).required(false).numberOfArgs(1).desc("Path to configuration file").build();
         options.addOption(nameOption);
         options.addOption(configOption);
         HelpFormatter formatter = new HelpFormatter();
-        CommandLineParser parser = new DefaultParser();
         try {
-            File configFile = new File(ConfigService.DEFAULT_CONFIG_PATHNAME).getAbsoluteFile();
+            CommandLineParser parser = new DefaultParser();
             CommandLine cmdLine = parser.parse(options, args);
             if (cmdLine.getOptionValue(OPTION_CONFIG) != null) {
                 configFile = new File(cmdLine.getOptionValue(OPTION_CONFIG)).getAbsoluteFile();
             }
-            Tracer tracer = new LogbackTracer("NZX");
+            if (cmdLine.getOptionValue(OPTION_SERVER_NAME) != null) {
+                serverName = cmdLine.getOptionValue(OPTION_SERVER_NAME);
+            }
+        } catch (ParseException e) {
+            formatter.printHelp("java -jar nzx.jar", options);
+            applicationContext.close();
+            return;
+        }
+        try {
             tracer.info("Loading", "NZX version: " + NZXConstants.NZX_VERSION);
             cfgService = new ConfigService(configFile, tracer);
             cfgService.bootstrap();
-            if (cmdLine.getOptionValue(OPTION_SERVER_NAME) != null) {
-                cfgService.nzx().setServerName(cmdLine.getOptionValue(OPTION_SERVER_NAME));
+            if (serverName != null) {
+                cfgService.nzx().setServerName(serverName);
             }
             cfgService.start();
             nzx = new NZX(cfgService, tracer);
             nzx.bootstrap();
             nzx.start();
-        } catch (ParseException e) {
-            formatter.printHelp("java -jar nzx.jar", options);
         } catch (Exception e) {
             log.error("Application stopping...", e);
             applicationContext.close();

@@ -2,7 +2,6 @@ package ru.otr.nzx.http.server;
 
 import java.util.Map.Entry;
 
-import org.apache.commons.io.IOUtils;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpDelete;
 import org.apache.http.client.methods.HttpGet;
@@ -29,6 +28,8 @@ import io.netty.handler.codec.http.HttpResponseStatus;
 import io.netty.handler.codec.http.HttpHeaders.Names;
 import io.netty.handler.codec.http.HttpHeaders.Values;
 import io.netty.handler.codec.http.HttpRequest;
+
+import ru.otr.nzx.util.NZXUtil;
 
 public class MITM {
 
@@ -77,7 +78,7 @@ public class MITM {
             if (res.getEntity() != null && res.getEntity().getContent() != null) {
                 ByteBuf buffer = Unpooled.buffer();
                 try (ByteBufOutputStream bbos = new ByteBufOutputStream(buffer)) {
-                    IOUtils.copy(res.getEntity().getContent(), bbos);
+                    NZXUtil.copy(res.getEntity().getContent(), bbos);
                 }
                 response = new DefaultFullHttpResponse(request.getProtocolVersion(), HttpResponseStatus.valueOf(res.getStatusLine().getStatusCode()), buffer);
                 HttpHeaders.setContentLength(response, buffer.readableBytes());
