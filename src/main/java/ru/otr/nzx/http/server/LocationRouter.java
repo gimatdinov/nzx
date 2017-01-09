@@ -1,5 +1,6 @@
 package ru.otr.nzx.http.server;
 
+import java.lang.reflect.Constructor;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Date;
@@ -59,6 +60,20 @@ public class LocationRouter extends HttpFiltersSourceAdapter {
                     case FILE:
                         return new FileLocation(request, ctx, requestDateTime, requestID, requestURI, locCfg, postProcessor,
                                 tracer.getSubtracer(locCfg.getName()));
+                    case CLASS:
+                        try {
+                            @SuppressWarnings("unchecked")
+                            Class<Location> clazz = (Class<Location>) Class.forName(locCfg.location_class);
+                            Constructor<Location> constructor = clazz.getConstructor(new Class[] { HttpRequest.class, ChannelHandlerContext.class, Date.class,
+                                    String.class, URI.class, LocationConfig.class, NZXPostProcessor.class, Tracer.class });
+                            Location location = constructor.newInstance(request, ctx, requestDateTime, requestID, requestURI, locCfg, postProcessor,
+                                    tracer.getSubtracer(locCfg.getName()));
+                            return location;
+                        } catch (Exception e) {
+                            tracer.error("Location.Init.Error/NOTIFY_ADMIN", locCfg.toString(), e);
+                            return new FailureLocation(request, ctx, requestDateTime, requestID, requestURI, null, null, tracer.getSubtracer(locCfg.getName()),
+                                    500);
+                        }
                     case PROCESSOR:
                         return processors.get(locCfg.processor_name).makeLocation(request, ctx, requestDateTime, requestID, requestURI, locCfg, postProcessor,
                                 tracer.getSubtracer(locCfg.getName()));
@@ -66,8 +81,7 @@ public class LocationRouter extends HttpFiltersSourceAdapter {
                         return new Location(request, ctx, requestDateTime, requestID, requestURI, locCfg, postProcessor, tracer.getSubtracer(locCfg.getName()));
                     }
                 } else {
-                    return new FailureLocation(request, ctx, requestDateTime, requestID, requestURI, null, null, tracer.getSubtracer("#NotFound"),
-                            404);
+                    return new FailureLocation(request, ctx, requestDateTime, requestID, requestURI, null, null, tracer.getSubtracer("#NotFound"), 404);
                 }
             } else {
                 return new FailureLocation(request, ctx, requestDateTime, requestID, requestURI, null, null, tracer.getSubtracer("#MethodNotAllowed"), 405);

@@ -24,11 +24,11 @@ public class ActionConfig extends Config {
 		if (action_class != null && processor_name != null) {
 			throw new ConfigException("Incompatible {" + ACTION_CLASS + ", " + PROCESSOR_NAME + "}");
 		}
-		if (action_class != null) {
+		if (enable && action_class != null) {
 			try {
 				Class.forName(action_class);
 			} catch (ClassNotFoundException e) {
-				throw new ConfigException(e);
+				throw new ConfigException(src.toString(), e);
 			}
 		}
 		if (processor_name != null) {

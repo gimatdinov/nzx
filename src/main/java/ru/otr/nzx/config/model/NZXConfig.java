@@ -24,7 +24,7 @@ public class NZXConfig extends Config {
 		try {
 			server_name = src.optString(SERVER_NAME, InetAddress.getLocalHost().getHostName());
 		} catch (UnknownHostException e) {
-			throw new ConfigException(e);
+			throw new ConfigException("Cannot set server_name", e);
 		}
 		log_config = src.optString(LOG_CONFIG, null);
 		log = src.optString(LOG, "log");
