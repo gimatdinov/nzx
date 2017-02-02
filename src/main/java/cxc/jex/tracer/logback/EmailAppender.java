@@ -1,9 +1,18 @@
 package cxc.jex.tracer.logback;
 
+import java.util.Properties;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-import org.apache.commons.mail.*;
+import javax.mail.Message;
+import javax.mail.Multipart;
+import javax.mail.PasswordAuthentication;
+import javax.mail.Session;
+import javax.mail.Transport;
+import javax.mail.internet.InternetAddress;
+import javax.mail.internet.MimeBodyPart;
+import javax.mail.internet.MimeMessage;
+import javax.mail.internet.MimeMultipart;
 
 import ch.qos.logback.classic.PatternLayout;
 import ch.qos.logback.classic.boolex.OnMarkerEvaluator;
@@ -23,7 +32,6 @@ public class EmailAppender extends AppenderBase<ILoggingEvent> {
 
     private String smtpHost;
     private int smtpPort = 25;
-    private boolean ssl = false;
     private boolean startTLS = false;
 
     private ExecutorService executor;
@@ -73,27 +81,44 @@ public class EmailAppender extends AppenderBase<ILoggingEvent> {
     public void append(ILoggingEvent event) {
         try {
             if (evaluator.evaluate(event)) {
-                final Email email = new HtmlEmail();
-                email.setCharset("UTF-8");
-                email.setHostName(smtpHost);
-                email.setSmtpPort(smtpPort);
-                if (username != null && username.length() > 0) {
-                    email.setAuthenticator(new DefaultAuthenticator(username, password));
+                Properties props = new Properties();
+                props.put("mail.smtp.host", smtpHost);
+                props.put("mail.smtp.socketFactory.port", smtpPort);
+                props.put("mail.smtp.socketFactory.class", "javax.net.ssl.SSLSocketFactory");
+                props.put("mail.smtp.socketFactory.fallback", "false");
+                props.put("mail.smtp.starttls.enable", startTLS);
+                props.put("mail.smtp.ssl.trust", "*");
+                props.put("mail.smtp.auth", true);
+                props.put("mail.smtp.port", smtpPort);
+                Session session = Session.getDefaultInstance(props, new javax.mail.Authenticator() {
+                    @Override
+                    protected PasswordAuthentication getPasswordAuthentication() {
+                        return new PasswordAuthentication(username, password);
+                    }
+                });
+
+                final MimeMessage message = new MimeMessage(session);
+                message.setFrom(new InternetAddress(from));
+                String[] emails = to.split(",");
+                InternetAddress dests[] = new InternetAddress[emails.length];
+                for (int i = 0; i < emails.length; i++) {
+                    dests[i] = new InternetAddress(emails[i].trim().toLowerCase());
                 }
-                email.setSSLOnConnect(ssl);
-                email.setStartTLSEnabled(startTLS);
-                email.setFrom(from);
-                for (String item : to.split(",")) {
-                    email.addTo(item.trim());
-                }
+                message.setRecipients(Message.RecipientType.TO, dests);
                 String subjectText = subjectLayout.doLayout(event);
                 subjectText = subjectText.length() > 100 ? subjectText.substring(0, 96) + "..." : subjectText;
-                email.setSubject(subjectText);
-                email.setMsg(bodyLayout.doLayout(event));
+                message.setSubject(subjectText, "UTF-8");
+                Multipart mp = new MimeMultipart();
+                MimeBodyPart mbp = new MimeBodyPart();
+                mbp.setContent(bodyLayout.doLayout(event), "text/html;charset=utf-8");
+                mp.addBodyPart(mbp);
+                message.setContent(mp);
+                message.setSentDate(new java.util.Date());
+
                 executor.submit(new Runnable() {
                     public void run() {
                         try {
-                            email.send();
+                            Transport.send(message);
                         } catch (Exception e) {
                             System.out.println("Appender[" + getName() + "] : " + e.getMessage());
                         }
@@ -127,14 +152,6 @@ public class EmailAppender extends AppenderBase<ILoggingEvent> {
 
     public void setSmtpPort(int smtpPort) {
         this.smtpPort = smtpPort;
-    }
-
-    public boolean isSsl() {
-        return ssl;
-    }
-
-    public void setSsl(boolean ssl) {
-        this.ssl = ssl;
     }
 
     public String getUsername() {
